@@ -11,11 +11,11 @@
 
 ## Upcoming Features
 
-- Message shortcut: "Create Task" from any Slack message
-- Interactive buttons for Complete, Edit, Delete
+- Message shortcut: "Create Task" from any Slack message (Complete)
+- Interactive buttons for Complete, Edit, Delete (Complete)
 - Configurable task channel
 - Daily digest of open tasks
-- Improved formatting with Slack Block Kit
+- Improved formatting with Slack Block Kit (Complete)
 - Error handling and admin controls
 
 ## Assigning Tasks to Users
@@ -25,4 +25,7 @@
   - The app displays the assigned user in the task message (e.g., `Assigned to: @hermit`).
   - Future: Add interactive assignment via buttons or dropdowns.
 
-**Status:** Complete for MVP. Backend parsing and display of assigned users is live.
+**Status:**
+- Block Kit interactive buttons (Complete, Edit, Delete) are now live and appear on all task messages for direct management in Slack.
+- Message shortcut and improved formatting are complete.
+- Backend parsing and display of assigned users is live.

@@ -28,12 +28,44 @@ const app = new App({
   socketMode: false,
   appToken: process.env.SLACK_APP_TOKEN, // optional for socket mode
 });
+// Minimal test command for Block Kit buttons
+app.command("/testbuttons", async ({ ack, client, body }) => {
+  await ack();
+  await client.chat.postMessage({
+    channel: body.channel_id,
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "Test Block Kit Buttons",
+        },
+      },
+      {
+        type: "actions",
+        elements: [
+          {
+            type: "button",
+            text: { type: "plain_text", text: "Button 1" },
+            value: "test1",
+            action_id: "test_button_1",
+          },
+          {
+            type: "button",
+            text: { type: "plain_text", text: "Button 2" },
+            value: "test2",
+            action_id: "test_button_2",
+          },
+        ],
+      },
+    ],
+  });
+});
 
 // Handle Slack message shortcut: Create Task
 app.shortcut("create_task", async ({ shortcut, ack, client, respond }) => {
   await ack();
   const messageText = shortcut.message.text;
-  // Insert task into DB
   db.run(
     `INSERT INTO tasks (description) VALUES (?)`,
     [messageText],
@@ -45,10 +77,42 @@ app.shortcut("create_task", async ({ shortcut, ack, client, respond }) => {
             response_type: "ephemeral",
           });
       } else {
-        // Post to designated channel (replace 'tasks-channel-id' with your channel ID)
         client.chat.postMessage({
           channel: process.env.TASKS_CHANNEL_ID || shortcut.channel.id,
-          text: `:memo: *Task Created from message*: ${messageText}`,
+          blocks: [
+            {
+              type: "section",
+              text: {
+                type: "mrkdwn",
+                text: `:memo: *Task Created from message*: ${messageText}`,
+              },
+            },
+            {
+              type: "actions",
+              elements: [
+                {
+                  type: "button",
+                  text: { type: "plain_text", text: "✅ Complete" },
+                  style: "primary",
+                  value: String(this.lastID),
+                  action_id: "task_complete",
+                },
+                {
+                  type: "button",
+                  text: { type: "plain_text", text: "📝 Edit" },
+                  value: String(this.lastID),
+                  action_id: "task_edit",
+                },
+                {
+                  type: "button",
+                  text: { type: "plain_text", text: "❌ Delete" },
+                  style: "danger",
+                  value: String(this.lastID),
+                  action_id: "task_delete",
+                },
+              ],
+            },
+          ],
         });
       }
     }
@@ -68,7 +132,7 @@ server.get("/", (req, res) => res.send("Quick Task Creator is running."));
 })();
 
 // Register /task slash command
-app.command("/task", async ({ command, ack, respond }) => {
+app.command("/task", async ({ command, ack, client, body, respond }) => {
   await ack();
   let description = command.text.trim();
   if (!description) {
@@ -83,7 +147,6 @@ app.command("/task", async ({ command, ack, respond }) => {
   let assignedUser = null;
   if (mentionMatch) {
     assignedUser = mentionMatch[1];
-    // Remove mention from description for cleaner display
     description = description.replace(mentionMatch[0], "").trim();
   }
   db.run(
@@ -91,15 +154,58 @@ app.command("/task", async ({ command, ack, respond }) => {
     [description, assignedUser],
     function (err) {
       if (err) {
-        respond({ text: "Error creating task.", response_type: "ephemeral" });
+        respond({
+          text: `Error creating task: ${err.message}`,
+          response_type: "ephemeral",
+        });
       } else {
         let assignedText = assignedUser
           ? ` (Assigned to: <@${assignedUser}>)`
           : "";
-        respond({
-          text: `:memo: *Task Created*: ${description}${assignedText}`,
-          response_type: "in_channel",
-        });
+        client.chat
+          .postMessage({
+            channel: body.channel_id,
+            blocks: [
+              {
+                type: "section",
+                text: {
+                  type: "mrkdwn",
+                  text: `:memo: *Task Created*: ${description}${assignedText}`,
+                },
+              },
+              {
+                type: "actions",
+                elements: [
+                  {
+                    type: "button",
+                    text: { type: "plain_text", text: "✅ Complete" },
+                    style: "primary",
+                    value: String(this.lastID),
+                    action_id: "task_complete",
+                  },
+                  {
+                    type: "button",
+                    text: { type: "plain_text", text: "📝 Edit" },
+                    value: String(this.lastID),
+                    action_id: "task_edit",
+                  },
+                  {
+                    type: "button",
+                    text: { type: "plain_text", text: "❌ Delete" },
+                    style: "danger",
+                    value: String(this.lastID),
+                    action_id: "task_delete",
+                  },
+                ],
+              },
+            ],
+          })
+          .catch((e) => {
+            respond({
+              text: `Error sending Block Kit message: ${e.message}`,
+              response_type: "ephemeral",
+            });
+          });
       }
     }
   );

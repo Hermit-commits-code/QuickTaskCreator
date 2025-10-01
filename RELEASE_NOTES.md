@@ -1,29 +1,39 @@
 # Release Notes
 
-## v0.4.0 (2025-10-01)
+---
 
-- Message shortcut: "Create Task" from any Slack message (right-click → More actions)
-- Assign tasks to users via @mention in `/task` and `/task-edit` (backend parsing and storage)
-- SQLite storage implemented
-- Slack Bolt integration complete
-- `/task`, `/tasks`, `/task-edit`, `/task-complete`, `/task-delete` commands working
-- Documentation updated
+## v0.4.1 (2025-10-01)
 
-## Upcoming
-- Interactive buttons for task management
+**New:**
+
+- Block Kit interactive buttons (Complete, Edit, Delete) now appear on every task message in Slack. Users can manage tasks directly from the message with a single click.
+
+**Improvements:**
+
+- Button actions are available for both `/task` command and "Create Task" shortcut.
+- Documentation updated to reflect button usage.
+
+**Upcoming:**
+
 - Daily digest of open tasks
 
 ---
 
 ## v0.3.0 (2025-10-01)
 
+**New:**
+
 - Assign tasks to users via @mention in `/task` and `/task-edit` (backend parsing and storage)
+
+**Improvements:**
+
 - SQLite storage implemented
 - Slack Bolt integration complete
 - `/task`, `/tasks`, `/task-edit`, `/task-complete`, `/task-delete` commands working
 - Documentation updated
 
-## Upcoming
+**Upcoming:**
+
 - Message shortcut: "Create Task"
 - Interactive buttons for task management
 - Daily digest of open tasks
@@ -32,12 +42,15 @@
 
 ## v0.2.0 (2025-10-01)
 
+**New:**
+
 - SQLite storage implemented
 - Slack Bolt integration complete
 - `/task`, `/tasks`, `/task-edit`, `/task-complete`, `/task-delete` commands working
 - Documentation updated
 
-## Upcoming
+**Upcoming:**
+
 - Assign tasks to users via @mention
 - Message shortcut: "Create Task"
 - Interactive buttons for task management

@@ -8,7 +8,7 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Assign tasks to users by mentioning them in `/task` or `/task-edit`
 - Message shortcut: "Create Task" from any Slack message (right-click → More actions)
 - Configurable task channel
-- Interactive buttons: Complete, Edit, Delete
+- **Block Kit interactive buttons:** Complete, Edit, Delete — appear on every task message for easy management directly in Slack
 - Lightweight storage (SQLite)
 - (Optional) Daily digest of open tasks
 
@@ -34,6 +34,7 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 2. Install dependencies: `npm install`
 3. Set up your Slack app credentials
 4. Run locally: `node index.js` (or `npm start`)
+5. **Test Block Kit buttons:** Use `/task <description>` or the "Create Task" shortcut. You should see Complete, Edit, and Delete buttons on each task message in Slack.
 
 ## Roadmap
 
