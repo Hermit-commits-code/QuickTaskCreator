@@ -2,6 +2,27 @@
 
 ---
 
+## v0.5.0 (2025-10-01)
+
+**New:**
+
+- Daily digest of open tasks: Automatic summary sent to the configured Slack channel every morning at 9am.
+- `/setdigestchannel` command: Set the Slack channel for daily digest delivery.
+
+**Improvements:**
+
+- Documentation updated for daily digest and channel configuration.
+
+**Improvements:**
+
+- Error handling: All commands now provide clear, actionable error messages to users and log errors for debugging.
+
+**Upcoming:**
+
+- Admin controls
+
+---
+
 ## v0.4.1 (2025-10-01)
 
 **New:**

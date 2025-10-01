@@ -10,7 +10,8 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Configurable task channel
 - **Block Kit interactive buttons:** Complete, Edit, Delete — appear on every task message for easy management directly in Slack
 - Lightweight storage (SQLite)
-- (Optional) Daily digest of open tasks
+- **Daily digest of open tasks:** Automatic summary of all open tasks sent to your chosen Slack channel every morning at 9am. Channel can be set with `/setdigestchannel <channel_id>`.
+- **Robust error handling:** All commands provide clear, actionable error messages to users and log errors for debugging.
 
 ## Tech Stack
 
@@ -20,13 +21,14 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 
 ## Slash Commands
 
-| Command          | Usage & Arguments                                | Example                                   | Description                          |
-| ---------------- | ------------------------------------------------ | ----------------------------------------- | ------------------------------------ |
-| `/task`          | `<description> [@user] [due date]`               | `/task Fix login bug <@U123456> tomorrow` | Create a new task and assign to user |
-| `/tasks`         | _(none)_                                         | `/tasks`                                  | List all open tasks                  |
-| `/task-edit`     | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs <@U123456>`   | Edit and assign/reassign a task      |
-| `/task-complete` | `<task id>`                                      | `/task-complete 123`                      | Mark a task as complete              |
-| `/task-delete`   | `<task id>`                                      | `/task-delete 123`                        | Delete a task                        |
+| Command             | Usage & Arguments                                | Example                                   | Description                            |
+| ------------------- | ------------------------------------------------ | ----------------------------------------- | -------------------------------------- |
+| `/task`             | `<description> [@user] [due date]`               | `/task Fix login bug <@U123456> tomorrow` | Create a new task and assign to user   |
+| `/tasks`            | _(none)_                                         | `/tasks`                                  | List all open tasks                    |
+| `/task-edit`        | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs <@U123456>`   | Edit and assign/reassign a task        |
+| `/task-complete`    | `<task id>`                                      | `/task-complete 123`                      | Mark a task as complete                |
+| `/task-delete`      | `<task id>`                                      | `/task-delete 123`                        | Delete a task                          |
+| `/setdigestchannel` | `<channel_id>`                                   | `/setdigestchannel C12345678`             | Set the Slack channel for daily digest |
 
 ## Getting Started
 
@@ -35,6 +37,7 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 3. Set up your Slack app credentials
 4. Run locally: `node index.js` (or `npm start`)
 5. **Test Block Kit buttons:** Use `/task <description>` or the "Create Task" shortcut. You should see Complete, Edit, and Delete buttons on each task message in Slack.
+6. **Daily digest:** By default, a summary of open tasks is sent to the configured channel every morning at 9am. Use `/setdigestchannel <channel_id>` to change the channel.
 
 ## Roadmap
 

@@ -13,10 +13,11 @@
 
 - Message shortcut: "Create Task" from any Slack message (Complete)
 - Interactive buttons for Complete, Edit, Delete (Complete)
-- Configurable task channel
-- Daily digest of open tasks
+- Configurable task channel (via `/setdigestchannel` command)
+- Daily digest of open tasks (Complete)
 - Improved formatting with Slack Block Kit (Complete)
-- Error handling and admin controls
+- Robust error handling (Complete)
+- Admin controls
 
 ## Assigning Tasks to Users
 
@@ -26,6 +27,9 @@
   - Future: Add interactive assignment via buttons or dropdowns.
 
 **Status:**
+
 - Block Kit interactive buttons (Complete, Edit, Delete) are now live and appear on all task messages for direct management in Slack.
 - Message shortcut and improved formatting are complete.
+- Daily digest of open tasks is implemented and sent to the configured channel at 9am daily. Channel can be set with `/setdigestchannel`.
+- Robust error handling is implemented: all commands provide clear, actionable error messages and log errors for debugging.
 - Backend parsing and display of assigned users is live.

@@ -1,3 +1,60 @@
+// In-memory config for digest channel (persist to DB for production)
+let digestChannelId = process.env.TASKS_CHANNEL_ID;
+
+// Slash command to set daily digest channel
+app.command("/setdigestchannel", async ({ command, ack, respond }) => {
+  await ack();
+  const channelId = command.text.trim();
+  if (!channelId.match(/^C[A-Z0-9]+$/)) {
+    await respond({
+      text: "Please provide a valid Slack channel ID (e.g., C12345678).",
+      response_type: "ephemeral",
+    });
+    return;
+  }
+  digestChannelId = channelId;
+  await respond({
+    text: `Daily digest channel set to <#${channelId}>`,
+    response_type: "ephemeral",
+  });
+});
+// Daily digest dependencies
+const cron = require("node-cron");
+
+// Daily digest: send open tasks to Slack channel at 9am
+cron.schedule("0 9 * * *", async () => {
+  try {
+    db.all(`SELECT * FROM tasks WHERE status = 'open'`, async (err, rows) => {
+      if (err) return;
+      if (!rows.length) return;
+      const blocks = [
+        {
+          type: "header",
+          text: { type: "plain_text", text: "Daily Task Digest" },
+        },
+      ];
+      rows.forEach((task) => {
+        let assigned = task.assigned_user
+          ? ` (Assigned: <@${task.assigned_user}>)`
+          : "";
+        let due = task.due_date ? ` (Due: ${task.due_date})` : "";
+        blocks.push({
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: `*${task.description}*${assigned}${due}`,
+          },
+        });
+      });
+      await app.client.chat.postMessage({
+        channel: digestChannelId,
+        blocks,
+      });
+    });
+  } catch (e) {
+    // Optionally log error
+  }
+});
 // Quick Task Creator main entry
 const { App } = require("@slack/bolt");
 const express = require("express");
@@ -137,9 +194,10 @@ app.command("/task", async ({ command, ack, client, body, respond }) => {
   let description = command.text.trim();
   if (!description) {
     await respond({
-      text: "Please provide a task description.",
+      text: "❗ Task description cannot be empty. Please provide details for your task.",
       response_type: "ephemeral",
     });
+    console.error("[ERROR] /task: Empty description submitted.");
     return;
   }
   // Parse for Slack user mention (e.g., <@U123456>)
@@ -155,9 +213,10 @@ app.command("/task", async ({ command, ack, client, body, respond }) => {
     function (err) {
       if (err) {
         respond({
-          text: `Error creating task: ${err.message}`,
+          text: `❗ Failed to create task. Please try again or contact an admin.`,
           response_type: "ephemeral",
         });
+        console.error(`[ERROR] /task: DB error: ${err.message}`);
       } else {
         let assignedText = assignedUser
           ? ` (Assigned to: <@${assignedUser}>)`
@@ -202,9 +261,10 @@ app.command("/task", async ({ command, ack, client, body, respond }) => {
           })
           .catch((e) => {
             respond({
-              text: `Error sending Block Kit message: ${e.message}`,
+              text: `❗ Failed to send task message. Please try again or contact an admin.`,
               response_type: "ephemeral",
             });
+            console.error(`[ERROR] /task: Slack API error: ${e.message}`);
           });
       }
     }
@@ -219,7 +279,11 @@ app.command("/tasks", async ({ ack, respond }) => {
     [],
     (err, rows) => {
       if (err) {
-        respond({ text: "Error fetching tasks.", response_type: "ephemeral" });
+        respond({
+          text: "❗ Failed to fetch tasks. Please try again or contact an admin.",
+          response_type: "ephemeral",
+        });
+        console.error(`[ERROR] /tasks: DB error: ${err.message}`);
       } else if (rows.length === 0) {
         respond({ text: "No open tasks.", response_type: "ephemeral" });
       } else {
@@ -248,9 +312,10 @@ app.command("/task-edit", async ({ command, ack, respond }) => {
   let newDesc = descParts.join(" ").trim();
   if (!id || !newDesc) {
     respond({
-      text: "Usage: /task-edit <task id> <new description> [@user]",
+      text: "❗ Usage: /task-edit <task id> <new description> [@user]",
       response_type: "ephemeral",
     });
+    console.error("[ERROR] /task-edit: Missing task ID or description.");
     return;
   }
   // Parse for Slack user mention
@@ -266,9 +331,14 @@ app.command("/task-edit", async ({ command, ack, respond }) => {
     function (err) {
       if (err || this.changes === 0) {
         respond({
-          text: "Error editing task or task not found.",
+          text: "❗ Failed to edit task. Task not found or database error.",
           response_type: "ephemeral",
         });
+        console.error(
+          `[ERROR] /task-edit: DB error or task not found. ${
+            err ? err.message : ""
+          }`
+        );
       } else {
         let assignedText = assignedUser
           ? ` (Assigned to: <@${assignedUser}>)`
@@ -288,9 +358,10 @@ app.command("/task-complete", async ({ command, ack, respond }) => {
   const id = command.text.trim();
   if (!id) {
     respond({
-      text: "Usage: /task-complete <task id>",
+      text: "❗ Usage: /task-complete <task id>",
       response_type: "ephemeral",
     });
+    console.error("[ERROR] /task-complete: Missing task ID.");
     return;
   }
   db.run(
@@ -299,9 +370,14 @@ app.command("/task-complete", async ({ command, ack, respond }) => {
     function (err) {
       if (err || this.changes === 0) {
         respond({
-          text: "Error completing task or task not found.",
+          text: "❗ Failed to complete task. Task not found or database error.",
           response_type: "ephemeral",
         });
+        console.error(
+          `[ERROR] /task-complete: DB error or task not found. ${
+            err ? err.message : ""
+          }`
+        );
       } else {
         respond({
           text: `:white_check_mark: Task ${id} marked complete.`,
@@ -318,17 +394,23 @@ app.command("/task-delete", async ({ command, ack, respond }) => {
   const id = command.text.trim();
   if (!id) {
     respond({
-      text: "Usage: /task-delete <task id>",
+      text: "❗ Usage: /task-delete <task id>",
       response_type: "ephemeral",
     });
+    console.error("[ERROR] /task-delete: Missing task ID.");
     return;
   }
   db.run(`DELETE FROM tasks WHERE id = ?`, [id], function (err) {
     if (err || this.changes === 0) {
       respond({
-        text: "Error deleting task or task not found.",
+        text: "❗ Failed to delete task. Task not found or database error.",
         response_type: "ephemeral",
       });
+      console.error(
+        `[ERROR] /task-delete: DB error or task not found. ${
+          err ? err.message : ""
+        }`
+      );
     } else {
       respond({ text: `:x: Task ${id} deleted.`, response_type: "in_channel" });
     }
