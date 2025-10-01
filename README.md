@@ -6,7 +6,7 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 
 - `/task` slash command for instant task creation (with user assignment via @mention)
 - Assign tasks to users by mentioning them in `/task` or `/task-edit`
-- Message shortcut: "Create Task"
+- Message shortcut: "Create Task" from any Slack message (right-click → More actions)
 - Configurable task channel
 - Interactive buttons: Complete, Edit, Delete
 - Lightweight storage (SQLite)

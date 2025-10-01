@@ -29,6 +29,32 @@ const app = new App({
   appToken: process.env.SLACK_APP_TOKEN, // optional for socket mode
 });
 
+// Handle Slack message shortcut: Create Task
+app.shortcut("create_task", async ({ shortcut, ack, client, respond }) => {
+  await ack();
+  const messageText = shortcut.message.text;
+  // Insert task into DB
+  db.run(
+    `INSERT INTO tasks (description) VALUES (?)`,
+    [messageText],
+    function (err) {
+      if (err) {
+        respond &&
+          respond({
+            text: "Error creating task from message.",
+            response_type: "ephemeral",
+          });
+      } else {
+        // Post to designated channel (replace 'tasks-channel-id' with your channel ID)
+        client.chat.postMessage({
+          channel: process.env.TASKS_CHANNEL_ID || shortcut.channel.id,
+          text: `:memo: *Task Created from message*: ${messageText}`,
+        });
+      }
+    }
+  );
+});
+
 // Express server for health check
 
 const server = express();
