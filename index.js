@@ -44,7 +44,7 @@ server.get("/", (req, res) => res.send("Quick Task Creator is running."));
 // Register /task slash command
 app.command("/task", async ({ command, ack, respond }) => {
   await ack();
-  const description = command.text.trim();
+  let description = command.text.trim();
   if (!description) {
     await respond({
       text: "Please provide a task description.",
@@ -52,16 +52,26 @@ app.command("/task", async ({ command, ack, respond }) => {
     });
     return;
   }
-  // Insert into DB
+  // Parse for Slack user mention (e.g., <@U123456>)
+  const mentionMatch = description.match(/<@([A-Z0-9]+)>/);
+  let assignedUser = null;
+  if (mentionMatch) {
+    assignedUser = mentionMatch[1];
+    // Remove mention from description for cleaner display
+    description = description.replace(mentionMatch[0], "").trim();
+  }
   db.run(
-    `INSERT INTO tasks (description) VALUES (?)`,
-    [description],
+    `INSERT INTO tasks (description, assigned_user) VALUES (?, ?)`,
+    [description, assignedUser],
     function (err) {
       if (err) {
         respond({ text: "Error creating task.", response_type: "ephemeral" });
       } else {
+        let assignedText = assignedUser
+          ? ` (Assigned to: <@${assignedUser}>)`
+          : "";
         respond({
-          text: `:memo: *Task Created*: ${description}`,
+          text: `:memo: *Task Created*: ${description}${assignedText}`,
           response_type: "in_channel",
         });
       }
@@ -73,7 +83,7 @@ app.command("/task", async ({ command, ack, respond }) => {
 app.command("/tasks", async ({ ack, respond }) => {
   await ack();
   db.all(
-    `SELECT id, description, status FROM tasks WHERE status = 'open'`,
+    `SELECT id, description, status, assigned_user FROM tasks WHERE status = 'open'`,
     [],
     (err, rows) => {
       if (err) {
@@ -82,7 +92,12 @@ app.command("/tasks", async ({ ack, respond }) => {
         respond({ text: "No open tasks.", response_type: "ephemeral" });
       } else {
         const tasksList = rows
-          .map((t) => `• *${t.id}*: ${t.description}`)
+          .map((t) => {
+            let assigned = t.assigned_user
+              ? ` _(Assigned to: <@${t.assigned_user}> )_`
+              : "";
+            return `• *${t.id}*: ${t.description}${assigned}`;
+          })
           .join("\n");
         respond({
           text: `*Open Tasks:*
@@ -98,17 +113,24 @@ ${tasksList}`,
 app.command("/task-edit", async ({ command, ack, respond }) => {
   await ack();
   const [id, ...descParts] = command.text.trim().split(" ");
-  const newDesc = descParts.join(" ").trim();
+  let newDesc = descParts.join(" ").trim();
   if (!id || !newDesc) {
     respond({
-      text: "Usage: /task-edit <task id> <new description>",
+      text: "Usage: /task-edit <task id> <new description> [@user]",
       response_type: "ephemeral",
     });
     return;
   }
+  // Parse for Slack user mention
+  const mentionMatch = newDesc.match(/<@([A-Z0-9]+)>/);
+  let assignedUser = null;
+  if (mentionMatch) {
+    assignedUser = mentionMatch[1];
+    newDesc = newDesc.replace(mentionMatch[0], "").trim();
+  }
   db.run(
-    `UPDATE tasks SET description = ? WHERE id = ?`,
-    [newDesc, id],
+    `UPDATE tasks SET description = ?, assigned_user = ? WHERE id = ?`,
+    [newDesc, assignedUser, id],
     function (err) {
       if (err || this.changes === 0) {
         respond({
@@ -116,8 +138,11 @@ app.command("/task-edit", async ({ command, ack, respond }) => {
           response_type: "ephemeral",
         });
       } else {
+        let assignedText = assignedUser
+          ? ` (Assigned to: <@${assignedUser}>)`
+          : "";
         respond({
-          text: `:pencil2: Task ${id} updated.`,
+          text: `:pencil2: Task ${id} updated.${assignedText}`,
           response_type: "in_channel",
         });
       }

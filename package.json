@@ -1,6 +1,6 @@
 {
   "name": "quicktaskcreator",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "A lightweight Slack app for fast, frictionless task creation and management.",
   "main": "index.js",
   "scripts": {
