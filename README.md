@@ -29,6 +29,14 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 | `/task-complete`    | `<task id>`                                      | `/task-complete 123`                      | Mark a task as complete                |
 | `/task-delete`      | `<task id>`                                      | `/task-delete 123`                        | Delete a task                          |
 | `/setdigestchannel` | `<channel_id>`                                   | `/setdigestchannel C12345678`             | Set the Slack channel for daily digest |
+- **Add an admin:**
+
+```
+/addadmin <@username>
+```
+
+- You can select a user from Slack autocomplete (which inserts a mention like <@U12345678>), or type @username directly.
+- The app will resolve either format to the correct user ID.
 
 ## Getting Started
 
