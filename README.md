@@ -17,6 +17,16 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Slack Bolt for JavaScript
 - SQLite
 
+## Slash Commands
+
+| Command          | Usage & Arguments                                | Example                                | Description             |
+| ---------------- | ------------------------------------------------ | -------------------------------------- | ----------------------- |
+| `/task`          | `<description> [@user] [due date]`               | `/task Fix login bug @hermit tomorrow` | Create a new task       |
+| `/tasks`         | _(none)_                                         | `/tasks`                               | List all open tasks     |
+| `/task-edit`     | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs @hermit`   | Edit an existing task   |
+| `/task-complete` | `<task id>`                                      | `/task-complete 123`                   | Mark a task as complete |
+| `/task-delete`   | `<task id>`                                      | `/task-delete 123`                     | Delete a task           |
+
 ## Getting Started
 
 1. Clone the repo

@@ -1,15 +1,15 @@
 # Release Notes
 
-## v0.1.0 (2025-10-01)
+## v0.2.0 (2025-10-01)
 
-- Project initialized
-- Dependencies installed: Bolt, Express, SQLite
-- Added README and Release Notes
+- SQLite storage implemented
+- Slack Bolt integration complete
+- `/task`, `/tasks`, `/task-edit`, `/task-complete`, `/task-delete` commands working
+- Documentation updated
 
 ## Upcoming
 
-- Scaffold Express server and Bolt app
-- Implement `/task` command
-- Set up SQLite for task storage
-- Add message shortcut and interactive buttons
-- Daily digest (optional)
+- Assign tasks to users via @mention
+- Message shortcut: "Create Task"
+- Interactive buttons for task management
+- Daily digest of open tasks

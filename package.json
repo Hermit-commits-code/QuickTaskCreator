@@ -1,7 +1,7 @@
 {
   "name": "quicktaskcreator",
-  "version": "1.0.0",
-  "description": "",
+  "version": "0.2.0",
+  "description": "A lightweight Slack app for fast, frictionless task creation and management.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,6 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@slack/bolt": "^4.4.0",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "sqlite3": "^5.1.7"
   }
