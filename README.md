@@ -2,7 +2,6 @@
 
 Quick Task Creator is a lightweight Slack app for fast, frictionless task creation. Turn any Slack message into a structured task with a slash command or shortcut—no AI, no complex setup.
 
-
 ## Features
 
 - `/task` slash command for instant task creation (with user assignment via @mention)
@@ -21,13 +20,13 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 
 ## Slash Commands
 
-| Command          | Usage & Arguments                                | Example                                | Description             |
-| ---------------- | ------------------------------------------------ | -------------------------------------- | ----------------------- |
+| Command          | Usage & Arguments                                | Example                                   | Description                          |
+| ---------------- | ------------------------------------------------ | ----------------------------------------- | ------------------------------------ |
 | `/task`          | `<description> [@user] [due date]`               | `/task Fix login bug <@U123456> tomorrow` | Create a new task and assign to user |
-| `/tasks`         | _(none)_                                         | `/tasks`                               | List all open tasks     |
-| `/task-edit`     | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs <@U123456>`   | Edit and assign/reassign a task |
-| `/task-complete` | `<task id>`                                      | `/task-complete 123`                   | Mark a task as complete |
-| `/task-delete`   | `<task id>`                                      | `/task-delete 123`                     | Delete a task           |
+| `/tasks`         | _(none)_                                         | `/tasks`                                  | List all open tasks                  |
+| `/task-edit`     | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs <@U123456>`   | Edit and assign/reassign a task      |
+| `/task-complete` | `<task id>`                                      | `/task-complete 123`                      | Mark a task as complete              |
+| `/task-delete`   | `<task id>`                                      | `/task-delete 123`                        | Delete a task                        |
 
 ## Getting Started
 
