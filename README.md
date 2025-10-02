@@ -17,20 +17,23 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Lightweight storage (SQLite).
 - **Daily digest of open tasks:** Automatic summary of all open tasks sent to your chosen Slack channel every morning at 9am. Channel can be set with `/setdigestchannel <channel_id>`.
 
-**Task Picker Modals:**
 
-- `/task-complete` and `/task-delete` now open modals with a dropdown picker listing your open tasks (or all open tasks for admins). No need to remember task IDs—just select from the list.
-- `/task-edit` opens a modal with a dropdown picker of your open tasks, plus editable fields for description and due date. Update any field and save changes instantly.
-- All picker modals are context-aware: only relevant tasks are shown, and admin permissions are respected.
+**Bulk Task Actions (Multi-Select Modal):**
 
-**Example Modal Workflow:**
+- `/tasks` now includes a "Batch Actions" button. Click to open a modal where you can select multiple tasks and choose to complete or delete them in one action.
+- The modal uses a multi-select picker for tasks and an action dropdown (Complete/Delete).
+- Admins can batch complete or delete any open task. Regular users can only batch complete or delete their own tasks.
+- Error handling: If you select a task you don't have permission to modify, you'll see a clear error message for that task in the results.
+- All batch actions are processed individually, and results are shown in a single ephemeral message.
 
-1. Type `/task-complete` in Slack.
-2. A modal appears with a dropdown of your open tasks. Select the task and submit to mark it complete.
-3. Type `/task-delete` (admin only) to see a modal listing all open tasks. Select and confirm deletion.
-4. Type `/task-edit` to open a modal with a picker and editable fields. Select a task, update description/due date, and save.
+**Example Bulk Actions Workflow:**
 
-This picker-based workflow eliminates errors, speeds up task management, and provides a professional user experience.
+1. Type `/tasks` in Slack.
+2. Click the "Batch Actions" button.
+3. In the modal, select multiple tasks and choose "Complete" or "Delete".
+4. Submit to apply the action to all selected tasks. Results for each task are shown in a summary message.
+
+This multi-select workflow streamlines bulk management and provides clear feedback for each action.
 
 **Task Reminders & Notifications:**
 
@@ -93,24 +96,50 @@ This picker-based workflow eliminates errors, speeds up task management, and pro
 ## Roadmap
 
 
+
 ## Upcoming Features
 
+## Roadmap Prioritization
+
+**MVP Critical (Free Tier):**
+- Bulk task actions (multi-select, batch complete/delete)
+- Task categories, tags, or priorities
+- Customizable notification channels
+- Workspace-wide settings (reminder times, digest frequency)
+
+**Future Iterations / Premium Tier:**
 - Advanced reporting and analytics
 - Activity logs and audit trails
-- Customizable notification channels
+- User notification preferences (mute, digest only, etc.)
+- Improved mobile UX for modals
+- Accessibility enhancements
 - Enhanced onboarding and workspace management
-- Task categories, tags, or priorities
-- Bulk task actions (multi-select, batch complete/delete)
 - Task comments or threaded discussions
 - Integration with external tools (Google Calendar, Trello, etc.)
 - Export/import tasks (CSV, JSON)
-- Workspace-wide settings (reminder times, digest frequency)
-- Improved mobile UX for modals
-- Accessibility enhancements
 - API endpoints for external automation
-- User notification preferences (mute, digest only, etc.)
 - Admin dashboard for user/task management
 
+See `RELEASE_NOTES.md` for incremental changes and planned features.
+
+## Roadmap Prioritization
+
+**MVP Critical (Free Tier):**
+- Bulk task actions (multi-select, batch complete/delete)
+- Task categories, tags, or priorities
+- Customizable notification channels
+- Workspace-wide settings (reminder times, digest frequency)
+
+**Future Iterations:**
+- User notification preferences (mute, digest only, etc.)
+- Improved mobile UX for modals
+- Accessibility enhancements
+- Enhanced onboarding and workspace management
+- Task comments or threaded discussions
+- Integration with external tools (Google Calendar, Trello, etc.)
+- Export/import tasks (CSV, JSON)
+- API endpoints for external automation
+- Admin dashboard for user/task management
 
 See `RELEASE_NOTES.md` for incremental changes and planned features.
 

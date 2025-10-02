@@ -1,3 +1,18 @@
+
+## v1.3.0 (2025-10-02)
+
+**New:**
+
+- Bulk task actions: Multi-select modal for batch complete/delete from `/tasks` list.
+- Permissions: Admins can batch complete/delete any open task; regular users can only modify their own.
+- Error handling: Clear feedback for each task in batch actions, including permission errors and missing tasks.
+
+**Improvements:**
+
+- Streamlined workflow for managing multiple tasks at once.
+
+---
+
 ## v1.2.0 (2025-10-02)
 
 **New:**
