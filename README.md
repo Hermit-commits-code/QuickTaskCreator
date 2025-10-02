@@ -17,7 +17,6 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Lightweight storage (SQLite).
 - **Daily digest of open tasks:** Automatic summary of all open tasks sent to your chosen Slack channel every morning at 9am. Channel can be set with `/setdigestchannel <channel_id>`.
 
-
 **Reporting & Analytics:**
 
 - Use `/report` to view workspace analytics: total tasks, completed, open, overdue, breakdowns by category, priority, and user.
