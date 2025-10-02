@@ -1,4 +1,3 @@
-
 ## v1.7.0 (2025-10-02)
 
 **New:**
@@ -12,16 +11,32 @@
 
 ---
 
-## v1.6.0 (2025-10-02)
+
+## v1.8.0 (2025-10-02)
 
 **New:**
 
-- Reporting and analytics: `/report` command shows workspace stats (total, completed, open, overdue, by category, priority, user).
-- Results displayed in Slack message with summary and breakdowns.
+- Enhanced reporting and analytics: `/report` command now shows workspace stats (total, completed, open, overdue, completion rate, recent activity, by category, priority, user).
+- Results displayed in Slack message with summary, breakdowns, and professional enhancements.
 
 **Improvements:**
 
-- Workspace admins and users can view actionable insights for task management.
+- More actionable insights for workspace management and team productivity.
+
+---
+
+## v1.7.0 (2025-10-02)
+
+**New:**
+
+- Activity logs & audit trails: All major actions are now logged for auditing.
+- Admins can view logs with `/auditlog`.
+
+**Improvements:**
+
+- Full traceability for all task, admin, and config actions.
+
+---
 
 ---
 
