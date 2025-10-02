@@ -36,6 +36,7 @@ registerAdminHandlers(app, db);
 require("./commands")(app, db);
 require("./commands/removeAdmin")(app, db);
 require("./commands/setconfig")(app, db);
+require("./commands/report")(app, db);
 
 // Digest channel config
 let digestChannelId = process.env.TASKS_CHANNEL_ID;

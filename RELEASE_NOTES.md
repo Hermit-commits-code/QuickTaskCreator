@@ -1,3 +1,17 @@
+
+## v1.6.0 (2025-10-02)
+
+**New:**
+
+- Reporting and analytics: `/report` command shows workspace stats (total, completed, open, overdue, by category, priority, user).
+- Results displayed in Slack message with summary and breakdowns.
+
+**Improvements:**
+
+- Workspace admins and users can view actionable insights for task management.
+
+---
+
 ## v1.5.0 (2025-10-02)
 
 **New:**
