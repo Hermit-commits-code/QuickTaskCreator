@@ -123,7 +123,7 @@ This multi-select workflow streamlines bulk management and provides clear feedba
 
 **Future Iterations / Premium Tier:**
 - Advanced reporting and analytics
-- Activity logs and audit trails
+- Activity logs and audit trails (now implemented)
 - User notification preferences (mute, digest only, etc.)
 - Improved mobile UX for modals
 - Accessibility enhancements
@@ -135,6 +135,15 @@ This multi-select workflow streamlines bulk management and provides clear feedba
 - Admin dashboard for user/task management
 
 See `RELEASE_NOTES.md` for incremental changes and planned features.
+
+## Activity Logs & Audit Trails
+
+- All major actions (task create, edit, complete, delete, batch actions, admin add/remove, config changes) are logged in the activity log.
+- Admins can view recent activity using the `/auditlog` Slack command.
+- Audit log entries include user, action, details, and timestamp for full traceability.
+
+### Slash Commands
+- `/auditlog` — View recent activity logs (admin only)
 
 ## Roadmap Prioritization
 

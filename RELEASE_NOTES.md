@@ -1,3 +1,17 @@
+
+## v1.7.0 (2025-10-02)
+
+**New:**
+
+- Activity logs & audit trails: All major actions are now logged for auditing.
+- Admins can view logs with `/auditlog`.
+
+**Improvements:**
+
+- Full traceability for all task, admin, and config actions.
+
+---
+
 ## v1.6.0 (2025-10-02)
 
 **New:**
