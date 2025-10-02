@@ -11,6 +11,9 @@ function initTaskTable() {
       status TEXT DEFAULT 'open',
       assigned_user TEXT,
       due_date TEXT,
+      category TEXT,
+      tags TEXT,
+      priority TEXT DEFAULT 'Medium',
       reminder_status TEXT DEFAULT 'pending',
       next_reminder_time TEXT
     )`);
@@ -21,18 +24,35 @@ function getOpenTasks(callback) {
   db.all(`SELECT * FROM tasks WHERE status = 'open'`, callback);
 }
 
-function createTask(description, assignedUser, dueDate, callback) {
+function createTask(
+  description,
+  assignedUser,
+  dueDate,
+  category,
+  tags,
+  priority,
+  callback
+) {
   db.run(
-    `INSERT INTO tasks (description, assigned_user, due_date) VALUES (?, ?, ?)`,
-    [description, assignedUser, dueDate],
+    `INSERT INTO tasks (description, assigned_user, due_date, category, tags, priority) VALUES (?, ?, ?, ?, ?, ?)`,
+    [description, assignedUser, dueDate, category, tags, priority],
     callback
   );
 }
 
-function updateTask(id, newDesc, assignedUser, callback) {
+function updateTask(
+  id,
+  newDesc,
+  assignedUser,
+  dueDate,
+  category,
+  tags,
+  priority,
+  callback
+) {
   db.run(
-    `UPDATE tasks SET description = ?, assigned_user = ? WHERE id = ?`,
-    [newDesc, assignedUser, id],
+    `UPDATE tasks SET description = ?, assigned_user = ?, due_date = ?, category = ?, tags = ?, priority = ? WHERE id = ?`,
+    [newDesc, assignedUser, dueDate, category, tags, priority, id],
     callback
   );
 }

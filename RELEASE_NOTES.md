@@ -1,3 +1,16 @@
+## v1.4.0 (2025-10-02)
+
+**New:**
+
+- Task categories, tags, and priority fields added to all tasks.
+- Modals for task creation/editing now support category, tags, and priority selection.
+- `/tasks` list displays all new fields for each task.
+
+**Improvements:**
+
+- Enhanced organization and filtering for task management.
+
+---
 
 ## v1.3.0 (2025-10-02)
 

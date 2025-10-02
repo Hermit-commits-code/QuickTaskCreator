@@ -17,6 +17,12 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Lightweight storage (SQLite).
 - **Daily digest of open tasks:** Automatic summary of all open tasks sent to your chosen Slack channel every morning at 9am. Channel can be set with `/setdigestchannel <channel_id>`.
 
+**Task Categories, Tags, and Priority:**
+
+- Every task now supports a category (e.g. Bug, Feature, Chore), comma-separated tags (e.g. urgent, frontend), and a priority (Low, Medium, High).
+- You can set these fields when creating or editing a task via the modal.
+- The `/tasks` list displays category, tags, and priority for each task.
+- You can batch complete/delete tasks with these fields visible in the modal and results.
 
 **Bulk Task Actions (Multi-Select Modal):**
 

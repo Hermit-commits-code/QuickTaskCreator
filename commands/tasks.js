@@ -30,11 +30,14 @@ module.exports = function (app, db) {
           ? ` _(Assigned to: <@${t.assigned_user}> )_`
           : "";
         let due = t.due_date ? ` _(Due: ${t.due_date})_` : "";
+        let category = t.category ? ` _(Category: ${t.category})_` : "";
+        let tags = t.tags ? ` _(Tags: ${t.tags})_` : "";
+        let priority = t.priority ? ` _(Priority: ${t.priority})_` : "";
         return {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: `*${t.description}*${assigned}${due}`,
+            text: `*${t.description}*${assigned}${due}${category}${tags}${priority}`,
           },
           accessory: {
             type: "button",

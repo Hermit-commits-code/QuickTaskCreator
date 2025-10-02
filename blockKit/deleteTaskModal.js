@@ -57,6 +57,62 @@ function getDeleteTaskModal(tasks) {
         },
         optional: true,
       },
+      {
+        type: "input",
+        block_id: "category_block",
+        element: {
+          type: "plain_text_input",
+          action_id: "category_input",
+          placeholder: {
+            type: "plain_text",
+            text: "Enter category (e.g. Bug, Feature, Chore)",
+          },
+        },
+        label: {
+          type: "plain_text",
+          text: "Category",
+        },
+        optional: true,
+      },
+      {
+        type: "input",
+        block_id: "tags_block",
+        element: {
+          type: "plain_text_input",
+          action_id: "tags_input",
+          placeholder: {
+            type: "plain_text",
+            text: "Comma-separated tags (e.g. urgent, frontend)",
+          },
+        },
+        label: {
+          type: "plain_text",
+          text: "Tags",
+        },
+        optional: true,
+      },
+      {
+        type: "input",
+        block_id: "priority_block",
+        element: {
+          type: "static_select",
+          action_id: "priority_select",
+          placeholder: {
+            type: "plain_text",
+            text: "Select priority",
+          },
+          options: [
+            { text: { type: "plain_text", text: "Low" }, value: "Low" },
+            { text: { type: "plain_text", text: "Medium" }, value: "Medium" },
+            { text: { type: "plain_text", text: "High" }, value: "High" },
+          ],
+        },
+        label: {
+          type: "plain_text",
+          text: "Priority",
+        },
+        optional: true,
+      },
     ],
   };
 }
