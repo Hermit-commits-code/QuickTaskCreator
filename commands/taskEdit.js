@@ -39,6 +39,8 @@ module.exports = function (app, db) {
       `UPDATE tasks SET description = ?, due_date = ? WHERE id = ?`,
       [newDesc, newDue, taskId],
       function (err) {
+        const { logActivity } = require("../models/activityLogModel");
+        logActivity(user, "edit_task", `Task ${taskId} edited. New description: ${newDesc}, New due: ${newDue}`);
         if (err || this.changes === 0) {
           client.chat.postEphemeral({
             channel: body.view.private_metadata || body.channel.id,

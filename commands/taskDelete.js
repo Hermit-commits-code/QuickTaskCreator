@@ -40,6 +40,8 @@ module.exports = function (app, db) {
     const taskId = view.private_metadata;
     const reason = view.state.values.reason_block.reason_input.value;
     db.run("DELETE FROM tasks WHERE id = ?", [taskId], function (err) {
+      const { logActivity } = require("../models/activityLogModel");
+      logActivity(body.user.id, "delete_task", `Task ${taskId} deleted. Reason: ${reason || "N/A"}`);
       if (err || this.changes === 0) {
         client.chat.postMessage({
           channel: body.user.id,

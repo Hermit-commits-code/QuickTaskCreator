@@ -73,6 +73,8 @@ module.exports = function (app, db) {
       "INSERT OR IGNORE INTO admins (user_id) VALUES (?)",
       [selectedUser],
       function (err) {
+        const { logActivity } = require("../models/activityLogModel");
+        logActivity(user, "add_admin", `Admin privileges granted to <@${selectedUser}>`);
         if (err) {
           client.chat.postEphemeral({
             channel: body.view.private_metadata || body.channel.id,
