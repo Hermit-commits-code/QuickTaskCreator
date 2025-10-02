@@ -1,3 +1,16 @@
+## v1.5.0 (2025-10-02)
+
+**New:**
+
+- Workspace notification and schedule settings: `/setconfig` command opens a modal to set digest channel, digest time, and reminder time.
+- Settings are stored in the database and used for all notifications and digests.
+
+**Improvements:**
+
+- Flexible configuration for workspace admins.
+
+---
+
 ## v1.4.0 (2025-10-02)
 
 **New:**

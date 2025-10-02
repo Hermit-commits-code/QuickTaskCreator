@@ -17,7 +17,10 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Lightweight storage (SQLite).
 - **Daily digest of open tasks:** Automatic summary of all open tasks sent to your chosen Slack channel every morning at 9am. Channel can be set with `/setdigestchannel <channel_id>`.
 
-**Task Categories, Tags, and Priority:**
+**Workspace Notification & Schedule Settings:**
+
+- Use `/setconfig` to open a modal and set the daily digest channel, digest time, and reminder time (all in cron format).
+- Settings are stored in the database and used for all notifications and digests.
 
 - Every task now supports a category (e.g. Bug, Feature, Chore), comma-separated tags (e.g. urgent, frontend), and a priority (Low, Medium, High).
 - You can set these fields when creating or editing a task via the modal.
@@ -75,6 +78,7 @@ This multi-select workflow streamlines bulk management and provides clear feedba
 | `/add-admin`        | _(no arguments needed)_                          | `/add-admin`                              | Open modal to add admin privileges (admin only) |
 | `/removeadmin`      | _(no arguments needed)_                          | `/removeadmin`                            | Open modal to remove admin privileges (admin only) |
 | `/setdigestchannel` | `<channel_id>`                                   | `/setdigestchannel C12345678`             | Set the Slack channel for daily digest |
+| `/setconfig`       | _(no arguments needed)_                         | `/setconfig`                             | Open modal to set workspace notification channel and schedule times |
 | `/listadmins`       | _(no arguments needed)_                          | `/listadmins`                             | Open modal listing all current admins   |
 
 - **Add an admin:**

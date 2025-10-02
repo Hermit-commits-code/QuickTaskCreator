@@ -7,6 +7,7 @@ const express = require("express");
 // DB models
 const { db, initTaskTable } = require("./models/taskModel");
 const { initAdminTable } = require("./models/adminModel");
+const { initSettingsTable, getSetting } = require("./models/settingsModel");
 require("dotenv").config();
 
 // Load environment variables
@@ -18,6 +19,7 @@ const EXPRESS_PORT = 3001;
 // Initialize DB tables
 initTaskTable();
 initAdminTable();
+initSettingsTable();
 // Initialize Slack Bolt app
 const app = new App({
   signingSecret: SLACK_SIGNING_SECRET,
@@ -33,6 +35,7 @@ registerAdminHandlers(app, db);
 // Register all command handlers
 require("./commands")(app, db);
 require("./commands/removeAdmin")(app, db);
+require("./commands/setconfig")(app, db);
 
 // Digest channel config
 let digestChannelId = process.env.TASKS_CHANNEL_ID;
