@@ -63,7 +63,8 @@ This picker-based workflow eliminates errors, speeds up task management, and pro
 | `/task-complete`    | _(no arguments needed)_                          | `/task-complete`                          | Open modal to complete one of your tasks |
 | `/task-delete`      | _(no arguments needed)_                          | `/task-delete`                            | Open modal to delete a task (admin/all) |
 
-| `/removeadmin`      | _(no arguments needed)_                         | `/removeadmin`                            | Open modal to remove admin privileges (admin only) |
+| `/add-admin`        | _(no arguments needed)_                          | `/add-admin`                              | Open modal to add admin privileges (admin only) |
+| `/removeadmin`      | _(no arguments needed)_                          | `/removeadmin`                            | Open modal to remove admin privileges (admin only) |
 | `/setdigestchannel` | `<channel_id>`                                   | `/setdigestchannel C12345678`             | Set the Slack channel for daily digest |
 | `/listadmins`       | _(no arguments needed)_                          | `/listadmins`                             | Open modal listing all current admins   |
 
@@ -71,11 +72,13 @@ This picker-based workflow eliminates errors, speeds up task management, and pro
 
 
 
+
 **Admin Management:**
 
-- `/addadmin <@username>`: Add admin privileges to a user. You can select a user from Slack autocomplete or type their username.
+- `/add-admin`: Opens a modal with a Slack user picker. Select a user to grant admin privileges—no formatting errors, fully interactive.
+- **Solo user auto-admin:** If no admins exist, the first user to run `/add-admin` is automatically made an admin. This ensures individuals can self-admin without manual setup.
 - `/removeadmin`: Opens a modal with a dropdown picker of current admins. Select an admin to remove—no formatting errors, fully interactive.
-- `/listadmins`: Opens a modal listing all current admins in your workspace.
+- `/listadmins`: Opens a modal listing all current admins in your workspace. Now refactored for professional error handling—no more double ack errors.
 - Only current admins can remove other admins.
 
 ## Getting Started
@@ -89,12 +92,24 @@ This picker-based workflow eliminates errors, speeds up task management, and pro
 
 ## Roadmap
 
+
 ## Upcoming Features
 
 - Advanced reporting and analytics
 - Activity logs and audit trails
 - Customizable notification channels
 - Enhanced onboarding and workspace management
+- Task categories, tags, or priorities
+- Bulk task actions (multi-select, batch complete/delete)
+- Task comments or threaded discussions
+- Integration with external tools (Google Calendar, Trello, etc.)
+- Export/import tasks (CSV, JSON)
+- Workspace-wide settings (reminder times, digest frequency)
+- Improved mobile UX for modals
+- Accessibility enhancements
+- API endpoints for external automation
+- User notification preferences (mute, digest only, etc.)
+- Admin dashboard for user/task management
 
 
 See `RELEASE_NOTES.md` for incremental changes and planned features.

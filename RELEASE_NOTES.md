@@ -1,8 +1,19 @@
+## v1.2.0 (2025-10-02)
 
+**New:**
+
+- Auto-admin logic: If no admins exist, the first user to run `/add-admin` is automatically made an admin. This enables solo users to self-admin without manual setup.
+
+**Improvements:**
+
+- `/listadmins` handler refactored for professional error handling. No more double ack errors; code is future-proof and robust.
+
+---
 
 ## v1.1.0 (2025-10-02)
 
 **New:**
+
 - `/listadmins` command now opens a modal listing all current admins in your workspace.
 - Documentation updated to reflect modal-based admin management workflows.
 
@@ -20,18 +31,22 @@
 - Version bumped to 1.0.0 for production readiness.
 
 **Improvements:**
+
 - Robust error handling and user feedback throughout all workflows.
 - SQLite storage and Slack Bolt integration stable.
 
 **Next:**
+
 - Advanced reporting, audit logs, and customizable notification channels.
 
 **New:**
+
 - Automatic reminders for tasks with due dates and assigned users.
 - Reminders sent 24 hours before and on the day a task is due.
 - Interactive Slack buttons to snooze reminders (1 hour, 1 day) or reschedule (via `/task-edit`).
 
 **Improvements:**
+
 - Reminder status and next notification time tracked in the database.
 
 # Release Notes
