@@ -63,23 +63,20 @@ This picker-based workflow eliminates errors, speeds up task management, and pro
 | `/task-complete`    | _(no arguments needed)_                          | `/task-complete`                          | Open modal to complete one of your tasks |
 | `/task-delete`      | _(no arguments needed)_                          | `/task-delete`                            | Open modal to delete a task (admin/all) |
 
-| `/removeadmin`      | `<@user>`                                       | `/removeadmin <@U12345678>`               | Remove admin privileges (admin only)   |
+| `/removeadmin`      | _(no arguments needed)_                         | `/removeadmin`                            | Open modal to remove admin privileges (admin only) |
 | `/setdigestchannel` | `<channel_id>`                                   | `/setdigestchannel C12345678`             | Set the Slack channel for daily digest |
+| `/listadmins`       | _(no arguments needed)_                          | `/listadmins`                             | Open modal listing all current admins   |
 
 - **Add an admin:**
 
-**Add or Remove an Admin:**
 
-```
 
-/addadmin <@username>
-/removeadmin <@username>
+**Admin Management:**
 
-```
-
+- `/addadmin <@username>`: Add admin privileges to a user. You can select a user from Slack autocomplete or type their username.
+- `/removeadmin`: Opens a modal with a dropdown picker of current admins. Select an admin to remove—no formatting errors, fully interactive.
+- `/listadmins`: Opens a modal listing all current admins in your workspace.
 - Only current admins can remove other admins.
-- You can select a user from Slack autocomplete (which inserts a mention like <@U12345678>), or type @username directly.
-- The app will resolve either format to the correct user ID.
 
 ## Getting Started
 

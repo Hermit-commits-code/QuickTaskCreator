@@ -1,5 +1,10 @@
 
-## v1.0.0 (2025-10-02)
+## v1.1.0 (2025-10-02)
+
+**New:**
+- `/listadmins` command now opens a modal listing all current admins in your workspace.
+- Documentation updated to reflect modal-based admin management workflows.
+
 
 **Major Release: Modal-Based Task Management**
 
@@ -11,10 +16,12 @@
 - Version bumped to 1.0.0 for production readiness.
 
 **Improvements:**
+
 - Robust error handling and user feedback throughout all workflows.
 - SQLite storage and Slack Bolt integration stable.
 
 **Next:**
+
 - Advanced reporting, audit logs, and customizable notification channels.
 
 **New:**
