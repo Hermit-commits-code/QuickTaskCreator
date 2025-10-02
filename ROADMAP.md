@@ -11,14 +11,15 @@
 
 ## Upcoming Features
 
-
 ## Assigning Tasks to Users
 
-  - When a user is @mentioned in the `/task` or `/task-edit` command, their Slack user ID is parsed and stored in the `assigned_user` field in the database.
-  - The app displays the assigned user in the task message (e.g., `Assigned to: @hermit`).
-  - Future: Add interactive assignment via buttons or dropdowns.
+- When a user is @mentioned in the `/task` or `/task-edit` command, their Slack user ID is parsed and stored in the `assigned_user` field in the database.
+- The app displays the assigned user in the task message (e.g., `Assigned to: @hermit`).
+- Future: Add interactive assignment via buttons or dropdowns.
 
 **Status:**
 
- Improve /addadmin to support both Slack mention and @username input (completed)
+Improve /addadmin to support both Slack mention and @username input (completed)
+Task reminders and notifications (completed)
+
 - **Implemented:**

@@ -1,4 +1,42 @@
+
+## v1.0.0 (2025-10-02)
+
+**Major Release: Modal-Based Task Management**
+
+- All task actions (create, complete, edit, delete) now use professional Block Kit modals for error-free workflows.
+- Task picker modals for completion, deletion, and editing: select tasks from a dropdown, no manual IDs required.
+- Interactive buttons (Complete, Edit, Delete) on every task message, wired to open the correct modal.
+- Context-aware modals: only relevant tasks shown, admin permissions respected.
+- Documentation fully updated for modal workflows and picker logic.
+- Version bumped to 1.0.0 for production readiness.
+
+**Improvements:**
+- Robust error handling and user feedback throughout all workflows.
+- SQLite storage and Slack Bolt integration stable.
+
+**Next:**
+- Advanced reporting, audit logs, and customizable notification channels.
+
+**New:**
+
+- Automatic reminders for tasks with due dates and assigned users.
+- Reminders sent 24 hours before and on the day a task is due.
+- Interactive Slack buttons to snooze reminders (1 hour, 1 day) or reschedule (via `/task-edit`).
+
+**Improvements:**
+
+- Reminder status and next notification time tracked in the database.
+
 # Release Notes
+
+---
+
+## v0.5.1 (2025-10-01)
+
+**Improvements:**
+
+- `/addadmin` command now accepts both Slack mention format (`<@U12345678>`) and plain `@username` input. The app automatically resolves usernames to user IDs using the Slack API for a smoother experience.
+- Usage hint updated for clarity.
 
 ---
 
