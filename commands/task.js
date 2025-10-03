@@ -3,6 +3,9 @@ module.exports = function (app, db) {
   const { getTaskModal } = require("../blockKit/taskModal");
   app.command("/task", async ({ ack, client, body }) => {
     await ack();
+    // Log workspace and user activity
+    logWorkspace(body.team_id, "Slack Workspace");
+    logUser(body.user_id, body.team_id, "Slack User");
     // Open modal for task creation
     await client.views.open({
       trigger_id: body.trigger_id,

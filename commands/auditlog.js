@@ -2,9 +2,13 @@
 const { getRecentActivity } = require("../models/activityLogModel");
 const { isAdmin } = require("../models/adminModel");
 
+const { logWorkspace, logUser } = require("../models/analyticsModel");
 module.exports = function (app) {
-  app.command("/auditlog", async ({ command, ack, respond }) => {
+  app.command("/auditlog", async ({ command, ack, respond, body }) => {
     await ack();
+    // Log analytics
+    logWorkspace(body.team_id, "Slack Workspace");
+    logUser(body.user_id, body.team_id, "Slack User");
     const userId = command.user_id;
     isAdmin(userId, async (err, isAdminUser) => {
       if (err || !isAdminUser) {

@@ -1,3 +1,4 @@
+const { logWorkspace, logUser } = require("../models/analyticsModel");
 module.exports = function (app, db) {
   // Register modularized handlers
   const {
@@ -12,6 +13,9 @@ module.exports = function (app, db) {
   // /tasks command and modal
   app.command("/tasks", async ({ ack, respond, client, body }) => {
     await ack();
+    // Log analytics
+    logWorkspace(body.team_id, "Slack Workspace");
+    logUser(body.user_id, body.team_id, "Slack User");
     db.all(`SELECT * FROM tasks WHERE status = 'open'`, async (err, rows) => {
       if (err) {
         respond({

@@ -2,10 +2,14 @@
 
 const { getEditTaskModal } = require("../blockKit/editTaskModal");
 
+const { logWorkspace, logUser } = require("../models/analyticsModel");
 module.exports = function (app, db) {
   // /task-edit command now opens modal
   app.command("/task-edit", async ({ ack, body, client }) => {
     await ack();
+    // Log analytics
+    logWorkspace(body.team_id, "Slack Workspace");
+    logUser(body.user_id, body.team_id, "Slack User");
     // Fetch open tasks assigned to user
     db.all(
       `SELECT * FROM tasks WHERE status = 'open' AND (assigned_user = ? OR assigned_user IS NULL)`,
@@ -31,6 +35,8 @@ module.exports = function (app, db) {
   app.view("edit_task_modal_submit", async ({ ack, body, view, client }) => {
     await ack();
     const user = body.user.id;
+    // Log analytics
+    logUser(user, body.team.id, "Slack User");
     const values = view.state.values;
     const taskId = values.task_block.task_select.selected_option.value;
     const newDesc = values.desc_block.desc_input.value;
@@ -49,7 +55,7 @@ module.exports = function (app, db) {
           client.chat.postEphemeral({
             channel: body.view.private_metadata || body.channel.id,
             user,
-            text: "❗ Failed to edit task. Task not found or database error.",
+            text: "\u2757 Failed to edit task. Task not found or database error.",
           });
         } else {
           client.chat.postEphemeral({

@@ -26,6 +26,13 @@ initAdminTable();
 initSettingsTable();
 initActivityLogTable();
 initNotificationPreferencesTable();
+const { initAnalyticsTables } = require("./models/analyticsModel");
+initAnalyticsTables();
+// Ensure feedback and bug report tables exist
+const { createFeedbackTable } = require("./models/feedbackModel");
+const { createBugReportTable } = require("./models/bugReportModel");
+createFeedbackTable();
+createBugReportTable();
 // Initialize Slack Bolt app
 const app = new App({
   signingSecret: SLACK_SIGNING_SECRET,
@@ -44,6 +51,9 @@ require("./commands/removeAdmin")(app, db);
 require("./commands/setconfig")(app, db);
 require("./commands/report")(app, db);
 require("./commands/auditlog")(app);
+require("./commands/welcome")(app); // Onboarding welcome message
+require("./commands/help")(app);
+require("./commands/support")(app);
 
 // Digest channel config
 let digestChannelId = process.env.TASKS_CHANNEL_ID;

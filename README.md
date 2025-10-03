@@ -18,6 +18,7 @@
 - [Support & Feedback](#support--feedback)
 - [Tech Stack](#tech-stack)
 - [License](#license)
+- [Analytics & Privacy](#analytics--privacy)
 
 ---
 
@@ -70,6 +71,37 @@ Quick Task Creator is a professional, frictionless Slack app for structured task
 4. Run locally: `node index.js` (or `npm start`)
 5. Use `/task` or the "Create Task" shortcut in Slack to get started
 6. Configure your daily digest channel with `/setdigestchannel <channel_id>`
+
+---
+
+## Easy Slack App Install & Onboarding
+
+### Step-by-Step Installation
+
+1. **Create a Slack App:**
+   - Go to [Slack API: Create an App](https://api.slack.com/apps?new_app=1)
+   - Choose "From scratch" and name your app (e.g., Quick Task Creator)
+   - Select your workspace
+2. **Configure OAuth & Permissions:**
+   - Add required OAuth scopes: `commands`, `chat:write`, `users:read`, `channels:read`, `groups:read`, `im:read`, `mpim:read`
+   - Enable Interactivity & Shortcuts, set your Request URL to your hosted endpoint (e.g., https://yourapp.com/slack/events)
+   - Add slash commands: `/task`, `/tasks`, `/task-edit`, `/task-complete`, `/task-delete`, `/add-admin`, `/removeadmin`, `/setdigestchannel`, `/setconfig`, `/report`, `/listadmins`, `/notifyprefs`, `/help`, `/support`
+3. **Install the App to Your Workspace:**
+   - Go to "Install App" in Slack app settings
+   - Click "Install to Workspace" and authorize
+   - Copy your OAuth tokens and signing secret
+4. **Set Environment Variables:**
+   - Create a `.env` file or set environment variables:
+     - `SLACK_BOT_TOKEN`
+     - `SLACK_SIGNING_SECRET`
+     - `DATABASE_URL` (optional, defaults to SQLite)
+5. **Run the App Locally or Deploy:**
+   - Start with `node index.js` or `npm start`
+   - Use [ngrok](https://ngrok.com/) for local development: `ngrok http 3000` and update Slack URLs
+   - For production, deploy to Heroku, Render, Railway, or your own server
+6. **Onboarding Experience:**
+   - First-time users see a welcome message with usage tips
+   - Use `/help` for a quick guide to all commands
 
 ---
 
@@ -137,3 +169,15 @@ See `ROADMAP.md` for full details and prioritization.
 ## License
 
 MIT © 2025 Hermit-commits-code
+
+---
+
+## Analytics & Privacy
+
+Quick Task Creator tracks basic usage analytics to help improve the app and understand feature adoption. This includes:
+
+- Active workspaces and users
+- Command usage (task creation, editing, completion, deletion, audit log, etc.)
+- No personal message content or sensitive data is stored
+- A privacy disclaimer is shown to users on onboarding
+- Contact support to opt out of analytics tracking

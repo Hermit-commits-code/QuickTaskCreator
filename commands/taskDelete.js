@@ -1,15 +1,19 @@
 const { getDeleteTaskModal } = require("../blockKit/deleteTaskModal");
 
 // /task-delete command handler
+const { logWorkspace, logUser } = require("../models/analyticsModel");
 module.exports = function (app, db) {
   app.command(
     "/task-delete",
     async ({ command, ack, client, body, respond }) => {
       await ack();
+      // Log analytics
+      logWorkspace(body.team_id, "Slack Workspace");
+      logUser(body.user_id, body.team_id, "Slack User");
       const id = command.text.trim();
       if (!id) {
         respond({
-          text: "❗ Usage: /task-delete <task id>",
+          text: "\u2757 Usage: /task-delete <task id>",
           response_type: "ephemeral",
         });
         console.error("[ERROR] /task-delete: Missing task ID.");
@@ -21,7 +25,7 @@ module.exports = function (app, db) {
         async (err, row) => {
           if (err || !row) {
             respond({
-              text: "❗ Task not found.",
+              text: "\u2757 Task not found.",
               response_type: "ephemeral",
             });
             return;
@@ -37,6 +41,8 @@ module.exports = function (app, db) {
 
   app.view("delete_task_modal_submit", async ({ ack, body, view, client }) => {
     await ack();
+    // Log analytics
+    logUser(body.user.id, body.team.id, "Slack User");
     const taskId = view.private_metadata;
     const reason = view.state.values.reason_block.reason_input.value;
     db.run("DELETE FROM tasks WHERE id = ?", [taskId], function (err) {
@@ -49,7 +55,7 @@ module.exports = function (app, db) {
       if (err || this.changes === 0) {
         client.chat.postMessage({
           channel: body.user.id,
-          text: "❗ Failed to delete task. Task not found or database error.",
+          text: "\u2757 Failed to delete task. Task not found or database error.",
         });
       } else {
         client.chat.postMessage({
