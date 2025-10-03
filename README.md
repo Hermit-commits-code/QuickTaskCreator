@@ -1,6 +1,6 @@
 # Quick Task Creator
 
-[![Version](https://img.shields.io/badge/version-v1.10.1-blue)](https://github.com/Hermit-commits-code/QuickTaskCreator/releases)
+[![Version](https://img.shields.io/badge/version-v1.11.0-blue)](https://github.com/Hermit-commits-code/QuickTaskCreator/releases)
 [![Slack Ready](https://img.shields.io/badge/slack-ready-blue)](https://slack.com/apps)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
@@ -26,6 +26,12 @@
 
 Quick Task Creator is a professional, frictionless Slack app for structured task management. Create, assign, and manage tasks directly in Slack using interactive modals and buttons. No AI, no complex setup—just fast, reliable workflows.
 
+**Enterprise-ready:**
+- Multi-tenant workspace isolation
+- Secure data storage and privacy controls
+- Automated onboarding and workspace provisioning
+- Hosted cloud infrastructure
+
 ---
 
 ## Features
@@ -49,8 +55,25 @@ Quick Task Creator is a professional, frictionless Slack app for structured task
 - Feedback loop for feature requests and bug reports
 - Automated onboarding emails/messages
 - Feature updates/tips sent via Slack
+- **Enterprise bug report modal:** Structured fields for title, steps to reproduce, expected/actual behavior, environment, and context. Reports logged to database and auto-create GitHub issues.
+
 
 ### Premium Tier (Coming Soon)
+## Privacy & Security
+
+- All workspace data is isolated and never shared between customers.
+- Sensitive data is encrypted at rest and in transit.
+- Privacy controls and data deletion available on request.
+- No personal message content is stored; analytics are anonymized.
+## SaaS Roadmap Highlights
+
+- Multi-tenant support (workspace isolation)
+- Hosted cloud infrastructure
+- Automated onboarding and workspace provisioning
+- Secure data storage and privacy controls
+- Subscription/payment integration (Stripe, Paddle, etc.)
+- Usage limits and feature tiers
+- Web dashboard for account management and analytics
 
 - Advanced reporting and analytics
 - Admin dashboard for user/task management
