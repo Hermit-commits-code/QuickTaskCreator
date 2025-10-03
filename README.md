@@ -17,7 +17,6 @@ Quick Task Creator is a lightweight Slack app for fast, frictionless task creati
 - Lightweight storage (SQLite).
 - **Daily digest of open tasks:** Automatic summary of all open tasks sent to your chosen Slack channel every morning at 9am. Channel can be set with `/setdigestchannel <channel_id>`.
 
-
 **Reporting & Analytics:**
 
 - Use `/report` to view workspace analytics: total tasks, completed, open, overdue, completion rate, recent activity (last 7 days), and breakdowns by category, priority, and user.
@@ -55,11 +54,20 @@ This multi-select workflow streamlines bulk management and provides clear feedba
 - Reminder messages include buttons to snooze for 1 hour, snooze for 1 day, or reschedule (via `/task-edit`).
 - Reminders are tracked in the database and will not repeat unless snoozed or rescheduled.
 
+**User Notification Preferences:**
+
+- Use `/notifyprefs` to open a modal and set your notification preferences:
+	- Mute all notifications
+	- Receive only digests (no real-time reminders)
+	- Customize reminder times (e.g. "09:00", "17:30")
+- Critical admin alerts cannot be muted if required by workspace policy.
+- Admins can override preferences for compliance if needed.
+
 **Example reminder message:**
 
 ```
 :alarm_clock: Task Reminder
-
+```
 ## Tech Stack
 
 - Node.js (Express)
@@ -144,6 +152,7 @@ See `RELEASE_NOTES.md` for incremental changes and planned features.
 - Audit log entries include user, action, details, and timestamp for full traceability.
 
 ### Slash Commands
+- `/notifyprefs` — Set your notification preferences (mute, digest only, custom reminder time)
 - `/report` — View workspace analytics and reporting (all users)
 - `/auditlog` — View recent activity logs (admin only)
 

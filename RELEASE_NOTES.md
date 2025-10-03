@@ -12,6 +12,20 @@
 ---
 
 
+## v1.9.0 (2025-10-02)
+
+**New:**
+
+- User notification preferences: `/notifyprefs` command opens a modal for users to mute notifications, receive only digests, or customize reminder times.
+- Preferences are stored in the database and respected by all notification logic.
+- Critical admin alerts cannot be muted if required by workspace policy; admins can override for compliance.
+
+**Improvements:**
+
+- More control and flexibility for users to manage notification fatigue and workflow.
+
+---
+
 ## v1.8.0 (2025-10-02)
 
 **New:**
@@ -22,6 +36,8 @@
 **Improvements:**
 
 - More actionable insights for workspace management and team productivity.
+
+---
 
 ---
 
