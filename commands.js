@@ -9,6 +9,7 @@ const reminderActionsHandler = require("./commands/reminderActions");
 
 const addAdminHandler = require("./commands/addadmin");
 const listAdminsHandler = require("./commands/listadmins");
+const notifyPrefsHandler = require("./commands/notifyprefs");
 
 module.exports = function (app, db) {
   taskHandler(app, db);
@@ -19,4 +20,5 @@ module.exports = function (app, db) {
   reminderActionsHandler(app, db);
   addAdminHandler(app, db);
   listAdminsHandler(app, db);
+  notifyPrefsHandler(app);
 };

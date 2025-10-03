@@ -16,6 +16,14 @@ function getBatchTaskModal(tasks, isAdmin) {
       text: "Cancel",
     },
     blocks: [
+      // Section divider for clarity
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*Batch Actions*\n_All fields are accessible. Use Tab to navigate. Labels and placeholders are screen reader friendly._",
+        },
+      },
       {
         type: "input",
         block_id: "tasks_block",
@@ -24,7 +32,7 @@ function getBatchTaskModal(tasks, isAdmin) {
           action_id: "tasks_select",
           placeholder: {
             type: "plain_text",
-            text: "Select tasks",
+            text: "Select tasks for batch action. (Screen reader: Tasks multi-select input)",
           },
           options: tasks.map((task) => ({
             text: {
@@ -36,7 +44,11 @@ function getBatchTaskModal(tasks, isAdmin) {
         },
         label: {
           type: "plain_text",
-          text: "Tasks",
+          text: "Tasks (required)",
+        },
+        hint: {
+          type: "plain_text",
+          text: "Select one or more tasks. Accessible for screen readers.",
         },
       },
       {
@@ -47,7 +59,7 @@ function getBatchTaskModal(tasks, isAdmin) {
           action_id: "action_select",
           placeholder: {
             type: "plain_text",
-            text: "Select action",
+            text: "Action",
           },
           options: [
             {
@@ -72,7 +84,7 @@ function getBatchTaskModal(tasks, isAdmin) {
         text: {
           type: "mrkdwn",
           text: isAdmin
-            ? ":warning: *Batch delete will permanently remove selected tasks. This action cannot be undone.*"
+            ? ":warning: *Deleting tasks is permanent.*"
             : "You can only delete your own tasks.",
         },
       },

@@ -16,6 +16,14 @@ function getDeleteTaskModal(tasks) {
       text: "Cancel",
     },
     blocks: [
+      // Section divider for clarity
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*Delete Task*\n_All fields are accessible. Use Tab to navigate. Labels and placeholders are screen reader friendly._",
+        },
+      },
       {
         type: "input",
         block_id: "task_block",
@@ -24,7 +32,7 @@ function getDeleteTaskModal(tasks) {
           action_id: "task_select",
           placeholder: {
             type: "plain_text",
-            text: "Select a task to delete",
+            text: "Select a task to delete. (Screen reader: Task select input)",
           },
           options: tasks.map((task) => ({
             text: {
@@ -36,7 +44,11 @@ function getDeleteTaskModal(tasks) {
         },
         label: {
           type: "plain_text",
-          text: "Task",
+          text: "Task (required)",
+        },
+        hint: {
+          type: "plain_text",
+          text: "Select the task to delete. Accessible for screen readers.",
         },
       },
       {
@@ -48,14 +60,22 @@ function getDeleteTaskModal(tasks) {
           multiline: true,
           placeholder: {
             type: "plain_text",
-            text: "Add reason for deletion (optional)",
+            text: "Reason (optional)",
           },
         },
         label: {
           type: "plain_text",
-          text: "Reason for Deletion",
+          text: "Reason",
         },
         optional: true,
+      },
+      // Optional fields section
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*Optional Details*",
+        },
       },
       {
         type: "input",
@@ -65,7 +85,7 @@ function getDeleteTaskModal(tasks) {
           action_id: "category_input",
           placeholder: {
             type: "plain_text",
-            text: "Enter category (e.g. Bug, Feature, Chore)",
+            text: "Category (e.g. Bug)",
           },
         },
         label: {
@@ -82,7 +102,7 @@ function getDeleteTaskModal(tasks) {
           action_id: "tags_input",
           placeholder: {
             type: "plain_text",
-            text: "Comma-separated tags (e.g. urgent, frontend)",
+            text: "Tags (comma-separated)",
           },
         },
         label: {
@@ -99,7 +119,7 @@ function getDeleteTaskModal(tasks) {
           action_id: "priority_select",
           placeholder: {
             type: "plain_text",
-            text: "Select priority",
+            text: "Priority",
           },
           options: [
             { text: { type: "plain_text", text: "Low" }, value: "Low" },

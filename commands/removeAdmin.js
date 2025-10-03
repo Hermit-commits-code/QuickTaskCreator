@@ -46,7 +46,11 @@ module.exports = function (app, db) {
     const adminId = values.admin_block.admin_select.selected_option.value;
     db.run("DELETE FROM admins WHERE user_id = ?", [adminId], function (err) {
       const { logActivity } = require("../models/activityLogModel");
-      logActivity(user, "remove_admin", `Admin privileges removed for <@${adminId}>`);
+      logActivity(
+        user,
+        "remove_admin",
+        `Admin privileges removed for <@${adminId}>`
+      );
       // Safely get channel ID for ephemeral message
       let channelId =
         body.view && body.view.private_metadata

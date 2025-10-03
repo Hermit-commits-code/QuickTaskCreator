@@ -46,7 +46,11 @@ module.exports = function (app, db) {
         [taskId],
         function (err) {
           const { logActivity } = require("../models/activityLogModel");
-          logActivity(body.user.id, "complete_task", `Task ${taskId} marked complete. Notes: ${notes || "N/A"}`);
+          logActivity(
+            body.user.id,
+            "complete_task",
+            `Task ${taskId} marked complete. Notes: ${notes || "N/A"}`
+          );
           if (err || this.changes === 0) {
             client.chat.postMessage({
               channel: body.user.id,

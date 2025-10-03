@@ -68,7 +68,11 @@ module.exports = function (app, db) {
     setSetting("digest_time", digestTime);
     setSetting("reminder_time", reminderTime);
     const { logActivity } = require("../models/activityLogModel");
-    logActivity(body.user.id, "update_config", `Digest Channel: ${digestChannel}, Digest Time: ${digestTime}, Reminder Time: ${reminderTime}`);
+    logActivity(
+      body.user.id,
+      "update_config",
+      `Digest Channel: ${digestChannel}, Digest Time: ${digestTime}, Reminder Time: ${reminderTime}`
+    );
     await client.chat.postMessage({
       channel: body.user.id,
       text: `:white_check_mark: Workspace settings updated!\nDigest Channel: ${digestChannel}\nDigest Time: ${digestTime}\nReminder Time: ${reminderTime}`,

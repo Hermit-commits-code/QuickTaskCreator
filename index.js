@@ -9,6 +9,9 @@ const { db, initTaskTable } = require("./models/taskModel");
 const { initAdminTable } = require("./models/adminModel");
 const { initSettingsTable, getSetting } = require("./models/settingsModel");
 const { initActivityLogTable } = require("./models/activityLogModel");
+const {
+  initNotificationPreferencesTable,
+} = require("./models/notificationPreferencesModel");
 require("dotenv").config();
 
 // Load environment variables
@@ -22,6 +25,7 @@ initTaskTable();
 initAdminTable();
 initSettingsTable();
 initActivityLogTable();
+initNotificationPreferencesTable();
 // Initialize Slack Bolt app
 const app = new App({
   signingSecret: SLACK_SIGNING_SECRET,

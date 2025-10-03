@@ -16,6 +16,14 @@ function getTaskModal() {
       text: "Cancel",
     },
     blocks: [
+      // Section divider for clarity
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*Task Details*\n_All fields are accessible. Use Tab to navigate. Labels and placeholders are screen reader friendly._",
+        },
+      },
       {
         type: "input",
         block_id: "description_block",
@@ -25,12 +33,16 @@ function getTaskModal() {
           multiline: true,
           placeholder: {
             type: "plain_text",
-            text: "Describe the task...",
+            text: "Describe the task. Required. (Screen reader: Task description input)",
           },
         },
         label: {
           type: "plain_text",
-          text: "Task Description",
+          text: "Task Description (required)",
+        },
+        hint: {
+          type: "plain_text",
+          text: "Enter a clear, concise description. Accessible for screen readers.",
         },
       },
       {
@@ -41,12 +53,16 @@ function getTaskModal() {
           action_id: "user_select",
           placeholder: {
             type: "plain_text",
-            text: "Select a user",
+            text: "Select user to assign. (Screen reader: Assignee input)",
           },
         },
         label: {
           type: "plain_text",
-          text: "Assign to",
+          text: "Assignee (required)",
+        },
+        hint: {
+          type: "plain_text",
+          text: "Pick a user to assign the task. Accessible for screen readers.",
         },
       },
       {
@@ -57,12 +73,20 @@ function getTaskModal() {
           action_id: "due_input",
           placeholder: {
             type: "plain_text",
-            text: "MM-DD-YYYY or YYYY-MM-DD",
+            text: "Due date (YYYY-MM-DD)",
           },
         },
         label: {
           type: "plain_text",
-          text: "Due Date",
+          text: "Due",
+        },
+      },
+      // Optional fields section
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*Optional Details*",
         },
       },
       {
@@ -73,13 +97,14 @@ function getTaskModal() {
           action_id: "category_input",
           placeholder: {
             type: "plain_text",
-            text: "Enter category (e.g. Bug, Feature, Chore)",
+            text: "Category (e.g. Bug)",
           },
         },
         label: {
           type: "plain_text",
           text: "Category",
         },
+        optional: true,
       },
       {
         type: "input",
@@ -89,13 +114,14 @@ function getTaskModal() {
           action_id: "tags_input",
           placeholder: {
             type: "plain_text",
-            text: "Comma-separated tags (e.g. urgent, frontend)",
+            text: "Tags (comma-separated)",
           },
         },
         label: {
           type: "plain_text",
           text: "Tags",
         },
+        optional: true,
       },
       {
         type: "input",
@@ -105,7 +131,7 @@ function getTaskModal() {
           action_id: "priority_select",
           placeholder: {
             type: "plain_text",
-            text: "Select priority",
+            text: "Priority",
           },
           options: [
             { text: { type: "plain_text", text: "Low" }, value: "Low" },
@@ -117,6 +143,7 @@ function getTaskModal() {
           type: "plain_text",
           text: "Priority",
         },
+        optional: true,
       },
     ],
   };

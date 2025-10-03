@@ -68,7 +68,11 @@ function registerBatchActions(app, db) {
                     "UPDATE tasks SET status = 'completed' WHERE id = ?",
                     [taskId],
                     (err3) => {
-                      logActivity(userId, "batch_complete_task", `Task ${taskId} marked complete via batch.`);
+                      logActivity(
+                        userId,
+                        "batch_complete_task",
+                        `Task ${taskId} marked complete via batch.`
+                      );
                       if (err3) {
                         results.push(`Task ${taskId}: Error completing.`);
                       } else {
@@ -92,7 +96,11 @@ function registerBatchActions(app, db) {
                   !taskRow.assigned_user
                 ) {
                   db.run("DELETE FROM tasks WHERE id = ?", [taskId], (err4) => {
-                    logActivity(userId, "batch_delete_task", `Task ${taskId} deleted via batch.`);
+                    logActivity(
+                      userId,
+                      "batch_delete_task",
+                      `Task ${taskId} deleted via batch.`
+                    );
                     if (err4) {
                       results.push(`Task ${taskId}: Error deleting.`);
                     } else {

@@ -1,16 +1,36 @@
-## v1.7.0 (2025-10-02)
-
-**New:**
-
-- Activity logs & audit trails: All major actions are now logged for auditing.
-- Admins can view logs with `/auditlog`.
-
-**Improvements:**
-
-- Full traceability for all task, admin, and config actions.
+# Release Notes
 
 ---
 
+## v1.10.1 (2025-10-02)
+
+**Accessibility Enhancements:**
+
+- All modals now include descriptive labels and placeholders for screen readers.
+- Section headers with accessibility instructions.
+- `hint` fields for extra guidance.
+- Tab navigation support for all input/select blocks.
+- Consistent, readable text and clear instructions.
+
+These improvements ensure Quick Task Creator is usable by everyone, including those using assistive technologies.
+
+---
+
+## v1.10.0 (2025-10-02)
+
+**Improvements:**
+
+- All modals (task creation, editing, batch actions, completion, deletion) redesigned for mobile usability.
+- Short, clear labels and placeholders for mobile screens.
+- Section dividers for clarity and context.
+- Only essential fields required; others optional.
+- Concise block order for easier navigation and thumb reach.
+- Larger touch targets and minimal scrolling.
+- Fully tested on Slack mobile app for accessibility and usability.
+
+These changes ensure a professional, frictionless experience for mobile users across all workflows.
+
+---
 
 ## v1.9.0 (2025-10-02)
 
@@ -39,8 +59,6 @@
 
 ---
 
----
-
 ## v1.7.0 (2025-10-02)
 
 **New:**
@@ -51,8 +69,6 @@
 **Improvements:**
 
 - Full traceability for all task, admin, and config actions.
-
----
 
 ---
 
@@ -148,8 +164,6 @@
 
 - Reminder status and next notification time tracked in the database.
 
-# Release Notes
-
 ---
 
 ## v0.5.1 (2025-10-01)
@@ -171,9 +185,6 @@
 **Improvements:**
 
 - Documentation updated for daily digest and channel configuration.
-
-**Improvements:**
-
 - Error handling: All commands now provide clear, actionable error messages to users and log errors for debugging.
 
 **Upcoming:**
