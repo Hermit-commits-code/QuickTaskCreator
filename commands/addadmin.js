@@ -3,65 +3,78 @@ const { getAddAdminModal } = require("../blockKit/addAdminModal");
 
 module.exports = function (app, db) {
   app.command("/add-admin", async ({ ack, body, client }) => {
-    await ack(); // Call ack immediately, only once
-    // Check if there are any admins yet
-    db.get("SELECT COUNT(*) AS count FROM admins", [], async (err, row) => {
-      if (err) {
-        await client.chat.postEphemeral({
-          channel: body.channel_id,
-          user: body.user_id,
-          text: "❗ Database error. Please try again.",
-        });
-        return;
-      }
-      if (row.count === 0) {
-        // No admins yet, make this user the first admin
-        db.run(
-          "INSERT INTO admins (user_id) VALUES (?)",
-          [body.user_id],
-          function (err2) {
-            if (err2) {
-              client.chat.postEphemeral({
-                channel: body.channel_id,
-                user: body.user_id,
-                text: "❗ Failed to set you as admin. Database error.",
-              });
-            } else {
-              client.chat.postEphemeral({
-                channel: body.channel_id,
-                user: body.user_id,
-                text: ":white_check_mark: You are now the workspace admin! You can add other admins.",
-              });
-              // Open the add admin modal
-              client.views.open({
-                trigger_id: body.trigger_id,
-                view: getAddAdminModal(),
-              });
-            }
+    try {
+      await ack(); // Call ack immediately, only once
+      // Check if there are any admins yet
+      db.get(
+        "SELECT COUNT(*) AS count FROM admins WHERE workspace_id = ?",
+        [body.team_id],
+        async (err, row) => {
+          if (err) {
+            await client.chat.postEphemeral({
+              channel: body.channel_id,
+              user: body.user_id,
+              text: "❗ Database error. Please try again.",
+            });
+            return;
           }
-        );
-      } else {
-        // Only allow current admins to add other admins
-        db.get(
-          "SELECT * FROM admins WHERE user_id = ?",
-          [body.user_id],
-          async (err, adminRow) => {
-            if (err || !adminRow) {
-              await client.chat.postEphemeral({
-                channel: body.channel_id,
-                user: body.user_id,
-                text: "❗ Only admins can add other admins.",
-              });
-            } else {
-              await client.views.open({
-                trigger_id: body.trigger_id,
-                view: getAddAdminModal(),
-              });
-            }
+          if (row.count === 0) {
+            // No admins yet, make this user the first admin
+            db.run(
+              "INSERT INTO admins (user_id, workspace_id) VALUES (?, ?)",
+              [body.user_id, body.team_id],
+              function (err2) {
+                if (err2) {
+                  client.chat.postEphemeral({
+                    channel: body.channel_id,
+                    user: body.user_id,
+                    text: "\u2757 Failed to set you as admin. Database error.",
+                  });
+                } else {
+                  client.chat.postEphemeral({
+                    channel: body.channel_id,
+                    user: body.user_id,
+                    text: ":white_check_mark: You are now the workspace admin! You can add other admins.",
+                  });
+                  // Open the add admin modal
+                  client.views.open({
+                    trigger_id: body.trigger_id,
+                    view: getAddAdminModal(),
+                  });
+                }
+              }
+            );
+          } else {
+            // Only allow current admins to add other admins
+            db.get(
+              "SELECT * FROM admins WHERE user_id = ? AND workspace_id = ?",
+              [body.user_id, body.team_id],
+              async (err, adminRow) => {
+                if (err || !adminRow) {
+                  await client.chat.postEphemeral({
+                    channel: body.channel_id,
+                    user: body.user_id,
+                    text: "❗ Only admins can add other admins.",
+                  });
+                } else {
+                  await client.views.open({
+                    trigger_id: body.trigger_id,
+                    view: getAddAdminModal(),
+                  });
+                }
+              }
+            );
           }
-        );
-      }
-    });
+        }
+      );
+    } catch (error) {
+      console.error("/add-admin error:", error);
+      await client.chat.postEphemeral({
+        channel: body.channel_id,
+        user: body.user_id,
+        text: ":x: Internal error. Please try again later.",
+      });
+    }
   });
 
   // Modal submission handler

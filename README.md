@@ -27,6 +27,7 @@
 Quick Task Creator is a professional, frictionless Slack app for structured task management. Create, assign, and manage tasks directly in Slack using interactive modals and buttons. No AI, no complex setup—just fast, reliable workflows.
 
 **Enterprise-ready:**
+
 - Multi-tenant workspace isolation
 - Secure data storage and privacy controls
 - Automated onboarding and workspace provisioning
@@ -57,14 +58,15 @@ Quick Task Creator is a professional, frictionless Slack app for structured task
 - Feature updates/tips sent via Slack
 - **Enterprise bug report modal:** Structured fields for title, steps to reproduce, expected/actual behavior, environment, and context. Reports logged to database and auto-create GitHub issues.
 
-
 ### Premium Tier (Coming Soon)
+
 ## Privacy & Security
 
 - All workspace data is isolated and never shared between customers.
 - Sensitive data is encrypted at rest and in transit.
 - Privacy controls and data deletion available on request.
 - No personal message content is stored; analytics are anonymized.
+
 ## SaaS Roadmap Highlights
 
 - Multi-tenant support (workspace isolation)
@@ -195,12 +197,33 @@ MIT © 2025 Hermit-commits-code
 
 ---
 
-## Analytics & Privacy
+## Privacy & Data Deletion
 
-Quick Task Creator tracks basic usage analytics to help improve the app and understand feature adoption. This includes:
+See `PRIVACY.md` for full policy. Key points:
 
-- Active workspaces and users
-- Command usage (task creation, editing, completion, deletion, audit log, etc.)
-- No personal message content or sensitive data is stored
-- A privacy disclaimer is shown to users on onboarding
-- Contact support to opt out of analytics tracking
+- No personal or message content stored
+- Feedback and bug reports encrypted
+- Workspace admins can delete all data via `/delete-workspace-data` (admin only, modal confirmation required)
+- Opt out of analytics via `/support`
+
+## Slack App Directory Readiness
+
+- All slash commands and URLs are listed in `slack-manifest.json`
+- Required OAuth scopes: `commands`, `chat:write`, `users:read`, `channels:read`, `groups:read`, `im:read`, `mpim:read`
+- Privacy and data deletion endpoints implemented and documented
+- Professional onboarding, admin controls, and compliance
+
+## Release Notes
+
+- Multi-tenant and admin support
+- Privacy and data deletion endpoints
+- Slack App Directory compliance
+- Enhanced onboarding and help
+
+## Support
+
+Use `/support` in Slack or email the maintainer for privacy/data requests.
+
+---
+
+_Last updated: October 4, 2025_

@@ -3,6 +3,7 @@ module.exports = function (app, db) {
   const { setSetting, getSetting } = require("../models/settingsModel");
   app.command("/setconfig", async ({ ack, body, client }) => {
     await ack();
+    const workspace_id = body.team_id;
     await client.views.open({
       trigger_id: body.trigger_id,
       view: {

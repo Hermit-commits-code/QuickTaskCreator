@@ -7,6 +7,7 @@ function initTaskTable() {
   db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
+      workspace_id TEXT NOT NULL,
       description TEXT NOT NULL,
       status TEXT DEFAULT 'open',
       assigned_user TEXT,
@@ -20,11 +21,16 @@ function initTaskTable() {
   });
 }
 
-function getOpenTasks(callback) {
-  db.all(`SELECT * FROM tasks WHERE status = 'open'`, callback);
+function getOpenTasks(workspace_id, callback) {
+  db.all(
+    `SELECT * FROM tasks WHERE status = 'open' AND workspace_id = ?`,
+    [workspace_id],
+    callback
+  );
 }
 
 function createTask(
+  workspace_id,
   description,
   assignedUser,
   dueDate,
@@ -34,13 +40,22 @@ function createTask(
   callback
 ) {
   db.run(
-    `INSERT INTO tasks (description, assigned_user, due_date, category, tags, priority) VALUES (?, ?, ?, ?, ?, ?)`,
-    [description, assignedUser, dueDate, category, tags, priority],
+    `INSERT INTO tasks (workspace_id, description, assigned_user, due_date, category, tags, priority) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+    [
+      workspace_id,
+      description,
+      assignedUser,
+      dueDate,
+      category,
+      tags,
+      priority,
+    ],
     callback
   );
 }
 
 function updateTask(
+  workspace_id,
   id,
   newDesc,
   assignedUser,
@@ -51,13 +66,22 @@ function updateTask(
   callback
 ) {
   db.run(
-    `UPDATE tasks SET description = ?, assigned_user = ?, due_date = ?, category = ?, tags = ?, priority = ? WHERE id = ?`,
-    [newDesc, assignedUser, dueDate, category, tags, priority, id],
+    `UPDATE tasks SET description = ?, assigned_user = ?, due_date = ?, category = ?, tags = ?, priority = ? WHERE id = ? AND workspace_id = ?`,
+    [
+      newDesc,
+      assignedUser,
+      dueDate,
+      category,
+      tags,
+      priority,
+      id,
+      workspace_id,
+    ],
     callback
   );
 }
 
-function completeTask(id, callback) {
+function completeTask(workspace_id, id, callback) {
   db.run(`UPDATE tasks SET status = 'complete' WHERE id = ?`, [id], callback);
 }
 

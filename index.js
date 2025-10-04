@@ -2,7 +2,7 @@
 // Register generic catch-all handlers after app initialization
 // ...existing code...
 // Command handlers are now registered in commands.js
-const { App } = require("@slack/bolt");
+const { App, ExpressReceiver } = require("@slack/bolt");
 const express = require("express");
 // DB models
 const { db, initTaskTable } = require("./models/taskModel");
@@ -33,12 +33,17 @@ const { createFeedbackTable } = require("./models/feedbackModel");
 const { createBugReportTable } = require("./models/bugReportModel");
 createFeedbackTable();
 createBugReportTable();
-// Initialize Slack Bolt app
-const app = new App({
+
+// Set up ExpressReceiver for HTTP endpoints
+const receiver = new ExpressReceiver({
   signingSecret: SLACK_SIGNING_SECRET,
+  endpoints: ["/slack/commands", "/slack/events"],
+});
+
+// Initialize Slack Bolt app with ExpressReceiver
+const app = new App({
   token: SLACK_BOT_TOKEN,
-  socketMode: false,
-  // appToken: process.env.SLACK_APP_TOKEN, // Not needed for HTTP mode
+  receiver,
 });
 
 // Register admin handlers
@@ -67,8 +72,8 @@ startDigestScheduler(app, digestChannelId);
 // Express server for health check
 // Express server removed; Slack Bolt will handle HTTP on port 3000
 
-// Start Slack Bolt app (Socket Mode, no HTTP server)
+// Start Slack Bolt app (HTTP server)
 (async () => {
-  await app.start(PORT); // Slack Bolt listens on port 3000
+  await app.start(PORT);
   console.log(`⚡️ Slack Bolt app is running on port ${PORT}`);
 })();

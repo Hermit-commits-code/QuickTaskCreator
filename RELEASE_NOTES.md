@@ -2,6 +2,26 @@
 
 ---
 
+## v1.11.0 (2025-10-03)
+
+**Enterprise-Ready Features:**
+
+- New bug report modal with structured fields: Title, Steps to Reproduce, Expected Behavior, Actual Behavior, Environment, Additional Context/Screenshots.
+- Bug reports are logged to the database and automatically create GitHub issues for triage and tracking.
+- All feedback and bug reports are now reliably stored and actionable.
+- Multi-tenant workspace isolation: all data is partitioned by workspace for privacy and compliance.
+- Privacy and security controls: sensitive data is encrypted at rest and in transit; privacy policy and data deletion available on request.
+- Automated onboarding and workspace provisioning for new Slack installs.
+- Hosted infrastructure ready for cloud deployment (Render, Railway, etc.).
+- README and documentation updated for v1.11.0, SaaS roadmap, and privacy/security.
+
+**Improvements:**
+
+- Professional error handling for feedback and bug report workflows.
+- Enhanced onboarding and support flows for enterprise and public Slack App Directory launch.
+
+---
+
 ## v1.10.1 (2025-10-02)
 
 **Accessibility Enhancements:**

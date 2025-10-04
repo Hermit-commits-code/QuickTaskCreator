@@ -1,11 +1,13 @@
 // /task command handler
+const { logWorkspace, logUser } = require("../models/analyticsModel");
 module.exports = function (app, db) {
   const { getTaskModal } = require("../blockKit/taskModal");
   app.command("/task", async ({ ack, client, body }) => {
     await ack();
     // Log workspace and user activity
-    logWorkspace(body.team_id, "Slack Workspace");
-    logUser(body.user_id, body.team_id, "Slack User");
+    const workspace_id = body.team_id;
+    logWorkspace(workspace_id, "Slack Workspace");
+    logUser(body.user_id, workspace_id, "Slack User");
     // Open modal for task creation
     await client.views.open({
       trigger_id: body.trigger_id,
@@ -25,10 +27,19 @@ module.exports = function (app, db) {
       view.state.values.priority_block?.priority_select?.selected_option
         ?.value || "Medium";
     const creatorId = body.user.id;
-    // Insert task into DB
+    // Insert task into DB (multi-tenant)
+    const workspace_id = body.team.id || body.team_id;
     db.run(
-      `INSERT INTO tasks (description, assigned_user, due_date, category, tags, priority) VALUES (?, ?, ?, ?, ?, ?)`,
-      [description, assignedUser, dueDate, category, tags, priority],
+      `INSERT INTO tasks (workspace_id, description, assigned_user, due_date, category, tags, priority) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        workspace_id,
+        description,
+        assignedUser,
+        dueDate,
+        category,
+        tags,
+        priority,
+      ],
       function (err) {
         if (err) {
           client.chat.postMessage({

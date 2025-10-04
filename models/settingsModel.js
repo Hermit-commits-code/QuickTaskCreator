@@ -5,8 +5,10 @@ const db = new sqlite3.Database("./tasks.db");
 function initSettingsTable() {
   db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS settings (
-      key TEXT PRIMARY KEY,
-      value TEXT
+      key TEXT,
+      value TEXT,
+      workspace_id TEXT NOT NULL,
+      PRIMARY KEY (key, workspace_id)
     )`);
     // Set defaults if not present
     db.run(
@@ -21,16 +23,20 @@ function initSettingsTable() {
   });
 }
 
-function getSetting(key, callback) {
-  db.get(`SELECT value FROM settings WHERE key = ?`, [key], (err, row) => {
-    callback(err, row ? row.value : null);
-  });
+function getSetting(key, workspace_id, callback) {
+  db.get(
+    `SELECT value FROM settings WHERE key = ? AND workspace_id = ?`,
+    [key, workspace_id],
+    (err, row) => {
+      callback(err, row ? row.value : null);
+    }
+  );
 }
 
-function setSetting(key, value, callback) {
+function setSetting(key, value, workspace_id, callback) {
   db.run(
-    `INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)`,
-    [key, value],
+    `INSERT OR REPLACE INTO settings (key, value, workspace_id) VALUES (?, ?, ?)`,
+    [key, value, workspace_id],
     callback
   );
 }

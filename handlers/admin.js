@@ -109,28 +109,5 @@ module.exports = function registerAdminHandlers(app, db) {
   });
 
   // /listadmins command
-  app.command("/listadmins", async ({ ack, respond }) => {
-    await ack();
-    db.all(`SELECT user_id FROM admins`, [], (err, rows) => {
-      if (err) {
-        respond({
-          text: "Error fetching admin list.",
-          response_type: "ephemeral",
-        });
-        return;
-      }
-      if (rows.length === 0) {
-        respond({
-          text: "No admins have been set.",
-          response_type: "ephemeral",
-        });
-        return;
-      }
-      const adminList = rows.map((r) => `<@${r.user_id}>`).join(", ");
-      respond({
-        text: `Current admins: ${adminList}`,
-        response_type: "ephemeral",
-      });
-    });
-  });
+  // /listadmins handler removed; use modal-based handler in commands/listadmins.js
 };

@@ -21,4 +21,5 @@ module.exports = function (app, db) {
   addAdminHandler(app, db);
   listAdminsHandler(app, db);
   notifyPrefsHandler(app);
+  require("./commands/deleteWorkspaceData")(app);
 };
