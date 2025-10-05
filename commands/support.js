@@ -27,25 +27,8 @@ module.exports = function (app) {
           type: "section",
           text: {
             type: "mrkdwn",
-            text: "• *Report a Bug*: <https://github.com/Hermit-commits-code/QuickTaskCreator/issues|Open a GitHub Issue>\n• *Submit Feedback*: Send feedback to <mailto:hotcupofjoe2013@gmail.com|support@quicktaskcreator.com> or use the button below.",
+            text: "• *Report a Bug*: <https://github.com/Hermit-commits-code/QuickTaskCreator/issues|Open a GitHub Issue>\n• *Submit Feedback*: Send feedback to <mailto:hotcupofjoe2013@gmail.com|support@quicktaskcreator.com>.",
           },
-        },
-        {
-          type: "actions",
-          elements: [
-            {
-              type: "button",
-              text: { type: "plain_text", text: "Submit Feedback" },
-              value: "feedback",
-              action_id: "open_feedback",
-            },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "Report a Bug (GitHub)" },
-              url: "https://github.com/Hermit-commits-code/QuickTaskCreator/issues",
-              action_id: "open_github_issues",
-            },
-          ],
         },
         { type: "divider" },
         {
