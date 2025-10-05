@@ -91,42 +91,6 @@ module.exports = function (app, db) {
               response_type: "ephemeral",
             });
           });
-        blocks.push({
-          type: "actions",
-          elements: [
-            {
-              type: "button",
-              text: { type: "plain_text", text: "Edit" },
-              action_id: "edit_task",
-              value: "edit",
-            },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "Delete" },
-              action_id: "delete_task",
-              value: "delete",
-            },
-            {
-              type: "button",
-              text: { type: "plain_text", text: "Batch Actions" },
-              action_id: "batch_task_actions",
-              value: "batch",
-            },
-          ],
-        });
-        client.chat
-          .postMessage({
-            channel: body.channel_id,
-            blocks,
-            text: "Open Tasks",
-          })
-          .catch((error) => {
-            console.error("/tasks db callback error:", error);
-            respond({
-              text: ":x: Internal error. Please try again later.",
-              response_type: "ephemeral",
-            });
-          });
       }
     );
   });

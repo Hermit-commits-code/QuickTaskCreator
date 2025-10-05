@@ -1,8 +1,9 @@
 // Block Kit modal for creating a task with user picker
-function getTaskModal() {
+function getTaskModal(channelId) {
   return {
     type: "modal",
     callback_id: "task_modal_submit",
+    private_metadata: channelId || "",
     title: {
       type: "plain_text",
       text: "Create Task",

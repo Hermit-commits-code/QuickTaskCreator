@@ -82,11 +82,19 @@ function updateTask(
 }
 
 function completeTask(workspace_id, id, callback) {
-  db.run(`UPDATE tasks SET status = 'complete' WHERE id = ?`, [id], callback);
+  db.run(
+    `UPDATE tasks SET status = 'complete' WHERE id = ? AND workspace_id = ?`,
+    [id, workspace_id],
+    callback
+  );
 }
 
 function deleteTask(id, callback) {
-  db.run(`DELETE FROM tasks WHERE id = ?`, [id], callback);
+  db.run(
+    `DELETE FROM tasks WHERE id = ? AND workspace_id = ?`,
+    [id, workspace_id],
+    callback
+  );
 }
 
 module.exports = {

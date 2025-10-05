@@ -14,15 +14,33 @@ module.exports = function (app, db) {
         logUser(body.user_id, workspace_id, "Slack User");
         const id = command.text.trim();
         if (!id) {
-          respond({
-            text: "\u2757 Usage: /task-delete <task id>",
-            response_type: "ephemeral",
-          });
-          console.error("[ERROR] /task-delete: Missing task ID.");
+          // No ID provided, show modal with dropdown of open tasks
+          db.all(
+            "SELECT id, description, due_date FROM tasks WHERE status = 'open' AND workspace_id = ?",
+            [workspace_id],
+            async (err, rows) => {
+              if (err || !rows || rows.length === 0) {
+                respond({
+                  text: "No open tasks to delete.",
+                  response_type: "ephemeral",
+                });
+                return;
+              }
+              await client.views.open({
+                trigger_id: body.trigger_id,
+                view: {
+                  ...getDeleteTaskModal(rows),
+                  private_metadata: JSON.stringify({
+                    channel_id: body.channel_id,
+                  }),
+                },
+              });
+            }
+          );
           return;
         }
         db.get(
-          "SELECT description FROM tasks WHERE id = ? AND workspace_id = ?",
+          "SELECT description, due_date FROM tasks WHERE id = ? AND workspace_id = ?",
           [id, workspace_id],
           async (err, row) => {
             if (err || !row) {
@@ -34,7 +52,14 @@ module.exports = function (app, db) {
             }
             await client.views.open({
               trigger_id: body.trigger_id,
-              view: getDeleteTaskModal(id, row.description),
+              view: {
+                ...getDeleteTaskModal([
+                  { id, description: row.description, due_date: row.due_date },
+                ]),
+                private_metadata: JSON.stringify({
+                  channel_id: body.channel_id,
+                }),
+              },
             });
           }
         );
@@ -53,30 +78,50 @@ module.exports = function (app, db) {
     // Log analytics
     const workspace_id = body.team.id;
     logUser(body.user.id, workspace_id, "Slack User");
-    const taskId = view.private_metadata;
+    // Get selected task from modal
+    const taskId =
+      view.state.values.task_block.task_select.selected_option.value;
     const reason = view.state.values.reason_block.reason_input.value;
+    // Robustly parse channel_id from private_metadata
+    let channel_id = null;
+    try {
+      if (view.private_metadata) {
+        const meta = JSON.parse(view.private_metadata);
+        if (meta.channel_id) channel_id = meta.channel_id;
+      }
+    } catch (e) {
+      channel_id = view.private_metadata || null;
+    }
     db.run(
       "DELETE FROM tasks WHERE id = ? AND workspace_id = ?",
       [taskId, workspace_id],
-      function (err) {
+      async function (err) {
         const { logActivity } = require("../models/activityLogModel");
         logActivity(
           body.user.id,
           "delete_task",
           `Task ${taskId} deleted. Reason: ${reason || "N/A"}`
         );
+        let msg = "";
         if (err || this.changes === 0) {
-          client.chat.postMessage({
-            channel: body.user.id,
-            text: "\u2757 Failed to delete task. Task not found or database error.",
+          msg =
+            "\u2757 Failed to delete task. Task not found or database error.";
+        } else {
+          msg = `:wastebasket: Task ${taskId} deleted. ${
+            reason ? "Reason: " + reason : ""
+          }`;
+        }
+        if (channel_id && channel_id.startsWith("C")) {
+          await client.chat.postEphemeral({
+            channel: channel_id,
+            user: body.user.id,
+            text: msg,
           });
         } else {
-          client.chat.postMessage({
-            channel: body.user.id,
-            text: `:wastebasket: Task ${taskId} deleted. ${
-              reason ? "Reason: " + reason : ""
-            }`,
-          });
+          console.error(
+            "[ERROR] No valid channel_id for postEphemeral in /task-delete modal submission.",
+            channel_id
+          );
         }
       }
     );

@@ -65,35 +65,74 @@ module.exports = function (app) {
   // Feedback modal trigger
   app.action("open_feedback", async ({ ack, body, client }) => {
     await ack();
+    // Get channel id from body (action payload)
+    const channel_id = body.channel?.id || body.channel_id;
     await client.views.open({
       trigger_id: body.trigger_id,
-      view: getFeedbackModal(),
+      view: {
+        ...getFeedbackModal(),
+        private_metadata: JSON.stringify({ channel_id }),
+      },
     });
   });
   app.view("feedback_modal_submit", async ({ ack, body, view, client }) => {
     await ack();
     const feedback = view.state.values.feedback_block.feedback_input.value;
+    // Try to get channel_id from private_metadata or context
+    let channel_id = null;
     try {
-      await insertFeedback(body.user.id, feedback);
+      if (view.private_metadata) {
+        const meta = JSON.parse(view.private_metadata);
+        if (meta.channel_id) channel_id = meta.channel_id;
+      }
+    } catch (e) {
+      channel_id = view.private_metadata || null;
+    }
+    try {
+      // workspace_id from body.team.id or body.team_id
+      const workspace_id = body.team?.id || body.team_id;
+      await insertFeedback(workspace_id, body.user.id, feedback);
     } catch (err) {
-      await client.chat.postMessage({
-        channel: body.user.id,
-        text: ":x: Failed to log feedback. Please try again later.",
-      });
+      console.error("[DB ERROR] Feedback logging failed:", err);
+      if (channel_id && channel_id.startsWith("C")) {
+        await client.chat.postEphemeral({
+          channel: channel_id,
+          user: body.user.id,
+          text: ":x: Failed to log feedback. Please try again later.",
+        });
+      } else {
+        console.error(
+          "[ERROR] No valid channel_id for postEphemeral in /support feedback modal submission.",
+          channel_id
+        );
+      }
       return;
     }
-    await client.chat.postMessage({
-      channel: body.user.id,
-      text: ":white_check_mark: Thank you for your feedback!",
-    });
+    if (channel_id && channel_id.startsWith("C")) {
+      await client.chat.postEphemeral({
+        channel: channel_id,
+        user: body.user.id,
+        text: ":white_check_mark: Thank you for your feedback!",
+      });
+    } else {
+      console.error(
+        "[ERROR] No valid channel_id for postEphemeral in /support feedback modal submission.",
+        channel_id
+      );
+    }
   });
 
   // Bug report modal trigger
   app.action("open_bug_report", async ({ ack, body, client }) => {
     await ack();
+    // Get channel id from body (action payload)
+    const channel_id = body.channel?.id || body.channel_id;
     await client.views.open({
       trigger_id: body.trigger_id,
-      view: getBugReportModal(),
+      view: {
+        ...getBugReportModal(),
+        private_metadata: JSON.stringify({ channel_id }),
+      },
     });
   });
   app.view("bug_report_modal_submit", async ({ ack, body, view, client }) => {
@@ -109,6 +148,16 @@ module.exports = function (app) {
     // Format bug report for DB and GitHub
     const bugDetails = `Title: ${title}\n\nSteps to Reproduce:\n${steps}\n\nExpected Behavior:\n${expected}\n\nActual Behavior:\n${actual}\n\nEnvironment: ${env}\n\nAdditional Context/Screenshots:\n${context}`;
     let githubIssueUrl = null;
+    // Try to get channel_id from private_metadata or context
+    let channel_id = null;
+    try {
+      if (view.private_metadata) {
+        const meta = JSON.parse(view.private_metadata);
+        if (meta.channel_id) channel_id = meta.channel_id;
+      }
+    } catch (e) {
+      channel_id = view.private_metadata || null;
+    }
     try {
       await insertBugReport(body.user.id, bugDetails);
       // Create GitHub issue
@@ -118,19 +167,35 @@ module.exports = function (app) {
       );
       githubIssueUrl = issue.html_url;
     } catch (err) {
-      await client.chat.postMessage({
-        channel: body.user.id,
-        text: ":x: Failed to log bug report or create GitHub issue. Please try again later.",
-      });
+      if (channel_id && channel_id.startsWith("C")) {
+        await client.chat.postEphemeral({
+          channel: channel_id,
+          user: body.user.id,
+          text: ":x: Failed to log bug report or create GitHub issue. Please try again later.",
+        });
+      } else {
+        console.error(
+          "[ERROR] No valid channel_id for postEphemeral in /support bug report modal submission.",
+          channel_id
+        );
+      }
       return;
     }
     let responseText = ":white_check_mark: Thank you for reporting a bug!";
     if (githubIssueUrl) {
       responseText += `\nGitHub Issue: ${githubIssueUrl}`;
     }
-    await client.chat.postMessage({
-      channel: body.user.id,
-      text: responseText,
-    });
+    if (channel_id && channel_id.startsWith("C")) {
+      await client.chat.postEphemeral({
+        channel: channel_id,
+        user: body.user.id,
+        text: responseText,
+      });
+    } else {
+      console.error(
+        "[ERROR] No valid channel_id for postEphemeral in /support bug report modal submission.",
+        channel_id
+      );
+    }
   });
 };

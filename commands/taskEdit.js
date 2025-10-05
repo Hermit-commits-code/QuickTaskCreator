@@ -25,7 +25,10 @@ module.exports = function (app, db) {
         }
         await client.views.open({
           trigger_id: body.trigger_id,
-          view: getEditTaskModal(rows),
+          view: {
+            ...getEditTaskModal(rows),
+            private_metadata: JSON.stringify({ channel_id: body.channel_id }),
+          },
         });
       }
     );
@@ -41,6 +44,16 @@ module.exports = function (app, db) {
     const taskId = values.task_block.task_select.selected_option.value;
     const newDesc = values.desc_block.desc_input.value;
     const newDue = values.due_block.due_input.value;
+    // Get channel_id from private_metadata (robust)
+    let channel_id = null;
+    try {
+      if (view.private_metadata) {
+        const meta = JSON.parse(view.private_metadata);
+        if (meta.channel_id) channel_id = meta.channel_id;
+      }
+    } catch (e) {
+      channel_id = view.private_metadata || null;
+    }
     db.run(
       `UPDATE tasks SET description = ?, due_date = ? WHERE id = ?`,
       [newDesc, newDue, taskId],
@@ -51,18 +64,25 @@ module.exports = function (app, db) {
           "edit_task",
           `Task ${taskId} edited. New description: ${newDesc}, New due: ${newDue}`
         );
-        if (err || this.changes === 0) {
-          client.chat.postEphemeral({
-            channel: body.view.private_metadata || body.channel.id,
-            user,
-            text: "\u2757 Failed to edit task. Task not found or database error.",
-          });
+        if (channel_id && channel_id.startsWith("C")) {
+          if (err || this.changes === 0) {
+            client.chat.postEphemeral({
+              channel: channel_id,
+              user,
+              text: "\u2757 Failed to edit task. Task not found or database error.",
+            });
+          } else {
+            client.chat.postEphemeral({
+              channel: channel_id,
+              user,
+              text: `:pencil2: Task updated successfully.`,
+            });
+          }
         } else {
-          client.chat.postEphemeral({
-            channel: body.view.private_metadata || body.channel.id,
-            user,
-            text: `:pencil2: Task updated successfully.`,
-          });
+          console.error(
+            "[ERROR] No valid channel_id for postEphemeral in /task-edit modal submission.",
+            channel_id
+          );
         }
       }
     );

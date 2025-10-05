@@ -28,11 +28,11 @@ function getCompleteTaskModal(userTasks) {
         type: "input",
         block_id: "task_block",
         element: {
-          type: "static_select",
+          type: "multi_static_select",
           action_id: "task_select",
           placeholder: {
             type: "plain_text",
-            text: "Select a task to complete. (Screen reader: Task select input)",
+            text: "Select one or more tasks to complete. (Screen reader: Task multi-select input)",
           },
           options: userTasks.map((task) => ({
             text: {
@@ -44,11 +44,11 @@ function getCompleteTaskModal(userTasks) {
         },
         label: {
           type: "plain_text",
-          text: "Task (required)",
+          text: "Tasks (required)",
         },
         hint: {
           type: "plain_text",
-          text: "Select the task to complete. Accessible for screen readers.",
+          text: "Select one or more tasks to complete. Accessible for screen readers.",
         },
       },
       {

@@ -8,10 +8,10 @@ module.exports = function (app, db) {
     const workspace_id = body.team_id;
     logWorkspace(workspace_id, "Slack Workspace");
     logUser(body.user_id, workspace_id, "Slack User");
-    // Open modal for task creation
+    // Open modal for task creation, pass channel_id as private_metadata
     await client.views.open({
       trigger_id: body.trigger_id,
-      view: getTaskModal(),
+      view: getTaskModal(body.channel_id),
     });
   });
   app.view("task_modal_submit", async ({ ack, body, view, client }) => {
@@ -27,6 +27,16 @@ module.exports = function (app, db) {
       view.state.values.priority_block?.priority_select?.selected_option
         ?.value || "Medium";
     const creatorId = body.user.id;
+    // Retrieve channelId from private_metadata (robust)
+    let channelId = null;
+    try {
+      if (view.private_metadata) {
+        const meta = JSON.parse(view.private_metadata);
+        if (meta.channel_id) channelId = meta.channel_id;
+      }
+    } catch (e) {
+      channelId = view.private_metadata || null;
+    }
     // Insert task into DB (multi-tenant)
     const workspace_id = body.team.id || body.team_id;
     db.run(
@@ -40,29 +50,35 @@ module.exports = function (app, db) {
         tags,
         priority,
       ],
-      function (err) {
-        if (err) {
-          client.chat.postMessage({
-            channel: creatorId,
-            text: "❗ Error creating task.",
-          });
-        } else {
-          // Notify creator
-          client.chat.postMessage({
-            channel: creatorId,
-            text: `:white_check_mark: Task created: *${description}* (Assigned to: <@${assignedUser}>) (Due: ${dueDate}) [${category}] [${tags}] [Priority: ${priority}]`,
-          });
-          // Notify assigned user
-          let assignedMsg = "";
-          if (assignedUser === creatorId) {
-            assignedMsg = `:memo: You created a new personal task: *${description}* (Due: ${dueDate}) [${category}] [${tags}] [Priority: ${priority}]`;
+      async function (err) {
+        if (channelId && channelId.startsWith("C")) {
+          if (err) {
+            await client.chat.postEphemeral({
+              channel: channelId,
+              user: creatorId,
+              text: "❗ Error creating task.",
+            });
           } else {
-            assignedMsg = `:bell: You’ve been assigned a new task by <@${creatorId}>: *${description}* (Due: ${dueDate}) [${category}] [${tags}] [Priority: ${priority}]`;
+            await client.chat.postEphemeral({
+              channel: channelId,
+              user: creatorId,
+              text: `:white_check_mark: Task created: *${description}* (Assigned to: <@${assignedUser}>) (Due: ${dueDate}) [${category}] [${tags}] [Priority: ${priority}]`,
+            });
+            // Notify assigned user if different
+            if (assignedUser !== creatorId) {
+              await client.chat.postEphemeral({
+                channel: channelId,
+                user: assignedUser,
+                text: `:bell: You’ve been assigned a new task by <@${creatorId}>: *${description}* (Due: ${dueDate}) [${category}] [${tags}] [Priority: ${priority}]`,
+              });
+            }
           }
-          client.chat.postMessage({
-            channel: assignedUser,
-            text: assignedMsg,
-          });
+        } else {
+          // No valid channel context, log error
+          console.error(
+            "[ERROR] No valid channel_id for postEphemeral in /task modal submission.",
+            channelId
+          );
         }
       }
     );

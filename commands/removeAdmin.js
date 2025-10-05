@@ -19,7 +19,7 @@ module.exports = function (app, db) {
           });
           return;
         }
-        // Get all admins for dropdown
+        // Get all admins for dropdown, filter out current user
         db.all("SELECT * FROM admins", [], async (err, admins) => {
           if (err || !admins.length) {
             client.chat.postEphemeral({
@@ -29,9 +29,20 @@ module.exports = function (app, db) {
             });
             return;
           }
+          const filteredAdmins = admins.filter(
+            (a) => a.user_id !== body.user_id
+          );
+          if (!filteredAdmins.length) {
+            client.chat.postEphemeral({
+              channel: body.channel_id,
+              user: body.user_id,
+              text: "No other admins to remove.",
+            });
+            return;
+          }
           await client.views.open({
             trigger_id: body.trigger_id,
-            view: getRemoveAdminModal(admins),
+            view: getRemoveAdminModal(filteredAdmins),
           });
         });
       }
@@ -59,14 +70,9 @@ module.exports = function (app, db) {
           ? body.channel.id
           : null;
       if (!channelId) {
-        // Fallback: send to user as DM if channel is not available
-        client.chat.postMessage({
-          channel: user,
-          text:
-            err || this.changes === 0
-              ? "❗ Failed to remove admin. User not found or database error."
-              : `:no_entry: Admin privileges removed for <@${adminId}>.`,
-        });
+        console.error(
+          "[ERROR] Unable to send feedback for /remove-admin. No valid channel context."
+        );
         return;
       }
       if (err || this.changes === 0) {

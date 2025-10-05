@@ -1,22 +1,142 @@
 // /report command handler for analytics
 module.exports = function (app, db) {
   const { getTaskStats } = require("../models/reportModel");
+
+  function buildAnalyticsBlocks(stats, recentStats, completionRate) {
+    return [
+      {
+        type: "header",
+        text: { type: "plain_text", text: "📊 QuickTaskCreator Analytics" },
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "image",
+            image_url:
+              "https://raw.githubusercontent.com/Hermit-commits-code/QuickTaskCreator/main/assets/logo.png",
+            alt_text: "QuickTaskCreator Logo",
+          },
+          {
+            type: "mrkdwn",
+            text: "_Enterprise-ready analytics for your workspace. All data is private and secure._",
+          },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Total Tasks:*\n${stats.total} :clipboard:`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Completed:*\n${stats.completed} :white_check_mark:`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Open:*\n${stats.open} :hourglass_flowing_sand:`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Overdue:*\n${stats.overdue} :warning:`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Completion Rate:*\n${completionRate}% :chart_with_upwards_trend:`,
+          },
+        ],
+        accessory: {
+          type: "image",
+          image_url: "https://img.icons8.com/color/48/000000/combo-chart.png",
+          alt_text: "Analytics Chart",
+        },
+      },
+      { type: "divider" },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Recent Activity (last 7 days)*\n• Created: *${recentStats.created}* :new: \n• Completed: *${recentStats.completed}* :tada:`,
+        },
+        accessory: {
+          type: "image",
+          image_url: "https://img.icons8.com/color/48/000000/calendar--v2.png",
+          alt_text: "Calendar",
+        },
+      },
+      { type: "divider" },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*By Category:*\n${stats.byCategory
+            .map((c) => `• *${c.category || "Uncategorized"}*: ${c.count}`)
+            .join("\n")}`,
+        },
+        accessory: {
+          type: "image",
+          image_url: "https://img.icons8.com/color/48/000000/tags.png",
+          alt_text: "Category Tags",
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*By Priority:*\n${stats.byPriority
+            .map((p) => `• *${p.priority || "None"}*: ${p.count}`)
+            .join("\n")}`,
+        },
+        accessory: {
+          type: "image",
+          image_url: "https://img.icons8.com/color/48/000000/high-priority.png",
+          alt_text: "Priority",
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*By User:*\n${stats.byUser
+            .map((u) => `• <@${u.assigned_user || "Unassigned"}>: ${u.count}`)
+            .join("\n")}`,
+        },
+        accessory: {
+          type: "image",
+          image_url:
+            "https://img.icons8.com/color/48/000000/user-group-man-man.png",
+          alt_text: "User Group",
+        },
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: "_QuickTaskCreator © 2025 | All rights reserved._",
+          },
+        ],
+      },
+    ];
+  }
+
   app.command("/report", async ({ ack, body, client }) => {
     await ack();
     getTaskStats((err, stats) => {
       if (err) {
-        client.chat.postMessage({
+        client.chat.postEphemeral({
           channel: body.channel_id,
+          user: body.user_id,
           text: ":x: Error generating report.",
         });
         return;
       }
-      // Calculate completion rate
       const completionRate =
         stats.total > 0
           ? ((stats.completed / stats.total) * 100).toFixed(1)
           : "0";
-      // Recent activity (last 7 days)
       const now = new Date();
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       db.all(
@@ -30,62 +150,17 @@ module.exports = function (app, db) {
               if (row.status === "open") recentStats.created = row.count;
             });
           }
-          let blocks = [
-            {
-              type: "section",
-              text: { type: "mrkdwn", text: `*Task Analytics Report*` },
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*Total Tasks:* ${stats.total}\n*Completed:* ${stats.completed}\n*Open:* ${stats.open}\n*Overdue:* ${stats.overdue}\n*Completion Rate:* ${completionRate}%`,
-              },
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*Recent Activity (last 7 days):*\nCreated: ${recentStats.created}\nCompleted: ${recentStats.completed}`,
-              },
-            },
-            {
-              type: "divider",
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*By Category:*\n${stats.byCategory
-                  .map((c) => `${c.category || "Uncategorized"}: ${c.count}`)
-                  .join("\n")}`,
-              },
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*By Priority:*\n${stats.byPriority
-                  .map((p) => `${p.priority || "None"}: ${p.count}`)
-                  .join("\n")}`,
-              },
-            },
-            {
-              type: "section",
-              text: {
-                type: "mrkdwn",
-                text: `*By User:*\n${stats.byUser
-                  .map(
-                    (u) => `<@${u.assigned_user || "Unassigned"}>: ${u.count}`
-                  )
-                  .join("\n")}`,
-              },
-            },
-          ];
-          client.chat.postMessage({
+          // Use buildAnalyticsBlocks for UI construction only
+          const blocks = buildAnalyticsBlocks(
+            stats,
+            recentStats,
+            completionRate
+          );
+          client.chat.postEphemeral({
             channel: body.channel_id,
+            user: body.user_id,
             blocks,
-            text: "Task Analytics Report",
+            text: "QuickTaskCreator Analytics",
           });
         }
       );

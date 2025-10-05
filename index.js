@@ -6,7 +6,7 @@ const { App, ExpressReceiver } = require("@slack/bolt");
 const express = require("express");
 // DB models
 const { db, initTaskTable } = require("./models/taskModel");
-const { initAdminTable } = require("./models/adminModel");
+const { initAdminsTable } = require("./models/initDb");
 const { initSettingsTable, getSetting } = require("./models/settingsModel");
 const { initActivityLogTable } = require("./models/activityLogModel");
 const {
@@ -22,7 +22,7 @@ const EXPRESS_PORT = 3001;
 
 // Initialize DB tables
 initTaskTable();
-initAdminTable();
+initAdminsTable(); // Ensure admins table migration runs
 initSettingsTable();
 initActivityLogTable();
 initNotificationPreferencesTable();

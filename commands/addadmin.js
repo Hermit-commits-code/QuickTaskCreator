@@ -39,7 +39,12 @@ module.exports = function (app, db) {
                   // Open the add admin modal
                   client.views.open({
                     trigger_id: body.trigger_id,
-                    view: getAddAdminModal(),
+                    view: {
+                      ...getAddAdminModal(),
+                      private_metadata: JSON.stringify({
+                        channel_id: body.channel_id,
+                      }),
+                    },
                   });
                 }
               }
@@ -59,7 +64,12 @@ module.exports = function (app, db) {
                 } else {
                   await client.views.open({
                     trigger_id: body.trigger_id,
-                    view: getAddAdminModal(),
+                    view: {
+                      ...getAddAdminModal(),
+                      private_metadata: JSON.stringify({
+                        channel_id: body.channel_id,
+                      }),
+                    },
                   });
                 }
               }
@@ -82,29 +92,53 @@ module.exports = function (app, db) {
     await ack();
     const user = body.user.id;
     const selectedUser = view.state.values.user_block.user_select.selected_user;
-    db.run(
-      "INSERT OR IGNORE INTO admins (user_id) VALUES (?)",
-      [selectedUser],
-      function (err) {
-        const { logActivity } = require("../models/activityLogModel");
-        logActivity(
-          user,
-          "add_admin",
-          `Admin privileges granted to <@${selectedUser}>`
-        );
-        if (err) {
+    const workspaceId = body.team.id || body.team_id;
+    // Get channel_id from private_metadata
+    let channel_id = null;
+    try {
+      if (view.private_metadata) {
+        const meta = JSON.parse(view.private_metadata);
+        if (meta.channel_id) channel_id = meta.channel_id;
+      }
+    } catch (e) {}
+    // Prevent duplicate admin entries
+    db.get(
+      "SELECT * FROM admins WHERE user_id = ? AND workspace_id = ?",
+      [selectedUser, workspaceId],
+      function (err, row) {
+        if (row) {
           client.chat.postEphemeral({
-            channel: body.view.private_metadata || body.channel.id,
+            channel: channel_id,
             user,
-            text: "❗ Failed to add admin. Database error.",
+            text: `:information_source: <@${selectedUser}> is already an admin for this workspace.`,
           });
-        } else {
-          client.chat.postEphemeral({
-            channel: body.view.private_metadata || body.channel.id,
-            user,
-            text: `:white_check_mark: Admin privileges granted to <@${selectedUser}>.`,
-          });
+          return;
         }
+        db.run(
+          "INSERT INTO admins (user_id, workspace_id) VALUES (?, ?)",
+          [selectedUser, workspaceId],
+          function (err2) {
+            const { logActivity } = require("../models/activityLogModel");
+            logActivity(
+              user,
+              "add_admin",
+              `Admin privileges granted to <@${selectedUser}>`
+            );
+            if (err2) {
+              client.chat.postEphemeral({
+                channel: channel_id,
+                user,
+                text: "❗ Failed to add admin. Database error.",
+              });
+            } else {
+              client.chat.postEphemeral({
+                channel: channel_id,
+                user,
+                text: `:white_check_mark: Admin privileges granted to <@${selectedUser}>.`,
+              });
+            }
+          }
+        );
       }
     );
   });
