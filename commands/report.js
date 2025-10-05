@@ -6,108 +6,57 @@ module.exports = function (app, db) {
     return [
       {
         type: "header",
-        text: { type: "plain_text", text: "📊 QuickTaskCreator Analytics" },
+        text: { type: "plain_text", text: "QuickTaskCreator Task Report" },
       },
-      {
-        type: "context",
-        elements: [
-          {
-            type: "image",
-            image_url:
-              "https://raw.githubusercontent.com/Hermit-commits-code/QuickTaskCreator/main/assets/logo.png",
-            alt_text: "QuickTaskCreator Logo",
-          },
-          {
-            type: "mrkdwn",
-            text: "_Enterprise-ready analytics for your workspace. All data is private and secure._",
-          },
-        ],
-      },
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: `*Total Tasks:*\n${stats.total} :clipboard:`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Completed:*\n${stats.completed} :white_check_mark:`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Open:*\n${stats.open} :hourglass_flowing_sand:`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Overdue:*\n${stats.overdue} :warning:`,
-          },
-          {
-            type: "mrkdwn",
-            text: `*Completion Rate:*\n${completionRate}% :chart_with_upwards_trend:`,
-          },
-        ],
-        accessory: {
-          type: "image",
-          image_url: "https://img.icons8.com/color/48/000000/combo-chart.png",
-          alt_text: "Analytics Chart",
-        },
-      },
-      { type: "divider" },
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*Recent Activity (last 7 days)*\n• Created: *${recentStats.created}* :new: \n• Completed: *${recentStats.completed}* :tada:`,
-        },
-        accessory: {
-          type: "image",
-          image_url: "https://img.icons8.com/color/48/000000/calendar--v2.png",
-          alt_text: "Calendar",
-        },
-      },
-      { type: "divider" },
-      {
-        type: "section",
-        text: {
-          type: "mrkdwn",
-          text: `*By Category:*\n${stats.byCategory
-            .map((c) => `• *${c.category || "Uncategorized"}*: ${c.count}`)
-            .join("\n")}`,
-        },
-        accessory: {
-          type: "image",
-          image_url: "https://img.icons8.com/color/48/000000/tags.png",
-          alt_text: "Category Tags",
+          text: `*Summary:*
+• Total Tasks: ${stats.total}
+• Completed: ${stats.completed}
+• Open: ${stats.open}
+• Overdue: ${stats.overdue}
+• Completion Rate: ${completionRate}%`,
         },
       },
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*By Priority:*\n${stats.byPriority
-            .map((p) => `• *${p.priority || "None"}*: ${p.count}`)
-            .join("\n")}`,
-        },
-        accessory: {
-          type: "image",
-          image_url: "https://img.icons8.com/color/48/000000/high-priority.png",
-          alt_text: "Priority",
+          text: `*Recent Activity (last 7 days):*
+• Created: ${recentStats.created}
+• Completed: ${recentStats.completed}`,
         },
       },
       {
         type: "section",
         text: {
           type: "mrkdwn",
-          text: `*By User:*\n${stats.byUser
-            .map((u) => `• <@${u.assigned_user || "Unassigned"}>: ${u.count}`)
-            .join("\n")}`,
+          text: `*By Category:*
+${stats.byCategory
+  .map((c) => `• ${c.category || "Uncategorized"}: ${c.count}`)
+  .join("\n")}`,
         },
-        accessory: {
-          type: "image",
-          image_url:
-            "https://img.icons8.com/color/48/000000/user-group-man-man.png",
-          alt_text: "User Group",
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*By Priority:*
+${stats.byPriority
+  .map((p) => `• ${p.priority || "None"}: ${p.count}`)
+  .join("\n")}`,
+        },
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*By User:*
+${stats.byUser
+  .map((u) => `• <@${u.assigned_user || "Unassigned"}>: ${u.count}`)
+  .join("\n")}`,
         },
       },
       {
