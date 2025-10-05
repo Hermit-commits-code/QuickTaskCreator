@@ -66,6 +66,7 @@ module.exports = function (app) {
             ],
             submit: { type: "plain_text", text: "Delete Data" },
             close: { type: "plain_text", text: "Cancel" },
+            private_metadata: JSON.stringify({ channel_id: body.channel_id }),
           },
         });
       } catch (error) {
@@ -81,15 +82,26 @@ module.exports = function (app) {
   // Modal submission handler
   app.view(
     "delete_workspace_data_confirm",
-    async ({ ack, body, view, respond }) => {
+    async ({ ack, body, view, client }) => {
       await ack();
       const workspace_id = body.team.id;
       const user_id = body.user.id;
       const confirmation = view.state.values.confirm_block.confirm_input.value;
+      // Robustly parse channel_id from private_metadata
+      let channel_id = null;
+      try {
+        if (view.private_metadata) {
+          const meta = JSON.parse(view.private_metadata);
+          if (meta.channel_id) channel_id = meta.channel_id;
+        }
+      } catch (e) {
+        channel_id = view.private_metadata || null;
+      }
       if (confirmation !== "DELETE") {
-        respond({
+        await client.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
           text: ":warning: Data deletion cancelled. You must type DELETE to confirm.",
-          response_type: "ephemeral",
         });
         return;
       }
@@ -102,14 +114,16 @@ module.exports = function (app) {
         db.run("DELETE FROM admins WHERE workspace_id = ?", [workspace_id]);
         db.run("DELETE FROM settings WHERE workspace_id = ?", [workspace_id]);
         db.run("DELETE FROM users WHERE workspace_id = ?", [workspace_id]);
-        respond({
+        await client.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
           text: ":wastebasket: All workspace data has been deleted.",
-          response_type: "ephemeral",
         });
       } catch (err) {
-        respond({
+        await client.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
           text: ":warning: Failed to delete workspace data. Please contact support.",
-          response_type: "ephemeral",
         });
       }
     }
