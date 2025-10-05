@@ -132,21 +132,22 @@ Quick Task Creator is a professional, frictionless Slack app for structured task
 
 ## Slash Commands
 
-| Command               | Usage & Arguments                                | Example                                 | Description                                                         |
-| --------------------- | ------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------- |
-| `/task`               | _(no arguments needed)_                          | `/task`                                 | Open modal to create and assign a task                              |
-| `/tasks`              | _(none)_                                         | `/tasks`                                | List all open tasks with interactive buttons                        |
-| `/task-edit`          | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs <@U123456>` | Edit and assign/reassign a task                                     |
-| `/task-complete`      | _(no arguments needed)_                          | `/task-complete`                        | Open modal to complete one of your tasks                            |
-| `/task-delete`        | _(no arguments needed)_                          | `/task-delete`                          | Open modal to delete a task (admin/all)                             |
-| `/add-admin`          | _(no arguments needed)_                          | `/add-admin`                            | Open modal to add admin privileges                                  |
-| `/removeadmin`        | _(no arguments needed)_                          | `/removeadmin`                          | Open modal to remove admin privileges                               |
-| `/setdigestchannel`   | `<channel_id>`                                   | `/setdigestchannel C12345678`           | Set the Slack channel for daily digest                              |
-| `/setconfig`          | _(no arguments needed)_                          | `/setconfig`                            | Open modal to set workspace notification channel and schedule times |
-| `/report`             | _(no arguments needed)_                          | `/report`                               | View workspace task analytics and reporting                         |
-| `/listadmins`         | _(no arguments needed)_                          | `/listadmins`                           | Open modal listing all current admins                               |
-| `/notifyprefs`        | _(no arguments needed)_                          | `/notifyprefs`                          | Set your notification preferences                                   |
-| `/help` or `/support` | _(no arguments needed)_                          | `/help`                                 | Get in-app help and support                                         |
+| Command                  | Usage & Arguments                                | Example                                 | Description                                                         |
+| ------------------------ | ------------------------------------------------ | --------------------------------------- | ------------------------------------------------------------------- |
+| `/task`                  | _(no arguments needed)_                          | `/task`                                 | Open modal to create and assign a task                              |
+| `/tasks`                 | _(none)_                                         | `/tasks`                                | List all open tasks with interactive buttons                        |
+| `/task-edit`             | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs <@U123456>` | Edit and assign/reassign a task                                     |
+| `/task-complete`         | _(no arguments needed)_                          | `/task-complete`                        | Open modal to complete one of your tasks                            |
+| `/task-delete`           | _(no arguments needed)_                          | `/task-delete`                          | Open modal to delete a task (admin/all)                             |
+| `/add-admin`             | _(no arguments needed)_                          | `/add-admin`                            | Open modal to add admin privileges                                  |
+| `/removeadmin`           | _(no arguments needed)_                          | `/removeadmin`                          | Open modal to remove admin privileges                               |
+| `/setdigestchannel`      | `<channel_id>`                                   | `/setdigestchannel C12345678`           | Set the Slack channel for daily digest                              |
+| `/setconfig`             | _(no arguments needed)_                          | `/setconfig`                            | Open modal to set workspace notification channel and schedule times |
+| `/report`                | _(no arguments needed)_                          | `/report`                               | View workspace task analytics and reporting                         |
+| `/listadmins`            | _(no arguments needed)_                          | `/listadmins`                           | Open modal listing all current admins                               |
+| `/notifyprefs`           | _(no arguments needed)_                          | `/notifyprefs`                          | Set your notification preferences                                   |
+| `/help` or `/support`    | _(no arguments needed)_                          | `/help`                                 | Get in-app help and support                                         |
+| `/delete-workspace-data` | _(admin only, no arguments needed)_              | `/delete-workspace-data`                | Open modal to confirm and delete all workspace data (admin only)    |
 
 ---
 
@@ -208,17 +209,13 @@ See `PRIVACY.md` for full policy. Key points:
 
 ## Slack App Directory Readiness
 
-- All slash commands and URLs are listed in `slack-manifest.json`
-- Required OAuth scopes: `commands`, `chat:write`, `users:read`, `channels:read`, `groups:read`, `im:read`, `mpim:read`
-- Privacy and data deletion endpoints implemented and documented
-- Professional onboarding, admin controls, and compliance
-
-## Release Notes
-
-- Multi-tenant and admin support
-- Privacy and data deletion endpoints
-- Slack App Directory compliance
-- Enhanced onboarding and help
+- All slash commands and URLs are listed in `slack-manifest.json` and kept up to date.
+- Required OAuth scopes: `commands`, `chat:write`, `users:read`, `channels:read`, `groups:read`, `im:read`, `mpim:read`.
+- Privacy and data deletion endpoints implemented and documented.
+- Professional onboarding, admin controls, and compliance.
+- Error logging: All errors are logged with enough detail for debugging, but without leaking sensitive info.
+- Security review: All endpoints and database queries are protected against injection and unauthorized access.
+- Documentation: README, PRIVACY.md, and onboarding messages are kept up to date for reviewers.
 
 ## Support
 
