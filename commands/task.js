@@ -26,6 +26,15 @@ module.exports = function (app, db) {
     const priority =
       view.state.values.priority_block?.priority_select?.selected_option
         ?.value || "Medium";
+    const recurrence_type =
+      view.state.values.recurrence_type_block?.recurrence_type_select
+        ?.selected_option?.value || "none";
+    const recurrence_interval =
+      parseInt(
+        view.state.values.recurrence_interval_block?.recurrence_interval_input
+          ?.value
+      ) || 1;
+    // For now, no recurrence_end_date field in modal
     const creatorId = body.user.id;
     // Retrieve channelId from private_metadata (robust)
     let channelId = null;
@@ -40,7 +49,7 @@ module.exports = function (app, db) {
     // Insert task into DB (multi-tenant)
     const workspace_id = body.team.id || body.team_id;
     db.run(
-      `INSERT INTO tasks (workspace_id, description, assigned_user, due_date, category, tags, priority) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO tasks (workspace_id, description, assigned_user, due_date, category, tags, priority, recurrence_type, recurrence_interval) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         workspace_id,
         description,
@@ -49,6 +58,8 @@ module.exports = function (app, db) {
         category,
         tags,
         priority,
+        recurrence_type,
+        recurrence_interval,
       ],
       async function (err) {
         if (channelId && channelId.startsWith("C")) {

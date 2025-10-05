@@ -146,6 +146,46 @@ function getTaskModal(channelId) {
         },
         optional: true,
       },
+      {
+        type: "input",
+        block_id: "recurrence_type_block",
+        element: {
+          type: "static_select",
+          action_id: "recurrence_type_select",
+          placeholder: {
+            type: "plain_text",
+            text: "Recurrence Type",
+          },
+          options: [
+            { text: { type: "plain_text", text: "None" }, value: "none" },
+            { text: { type: "plain_text", text: "Daily" }, value: "daily" },
+            { text: { type: "plain_text", text: "Weekly" }, value: "weekly" },
+            { text: { type: "plain_text", text: "Monthly" }, value: "monthly" },
+          ],
+        },
+        label: {
+          type: "plain_text",
+          text: "Recurrence",
+        },
+        optional: true,
+      },
+      {
+        type: "input",
+        block_id: "recurrence_interval_block",
+        element: {
+          type: "plain_text_input",
+          action_id: "recurrence_interval_input",
+          placeholder: {
+            type: "plain_text",
+            text: "Interval (e.g. every 2 days)",
+          },
+        },
+        label: {
+          type: "plain_text",
+          text: "Recurrence Interval",
+        },
+        optional: true,
+      },
     ],
   };
 }

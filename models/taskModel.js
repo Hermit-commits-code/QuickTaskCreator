@@ -16,7 +16,10 @@ function initTaskTable() {
       tags TEXT,
       priority TEXT DEFAULT 'Medium',
       reminder_status TEXT DEFAULT 'pending',
-      next_reminder_time TEXT
+      next_reminder_time TEXT,
+      recurrence_type TEXT DEFAULT 'none',
+      recurrence_interval INTEGER DEFAULT 1,
+      recurrence_end_date TEXT
     )`);
   });
 }
