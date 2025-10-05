@@ -137,6 +137,13 @@ module.exports = function (app) {
   });
   app.view("bug_report_modal_submit", async ({ ack, body, view, client }) => {
     await ack();
+    // Debug log to trace modal submission
+    console.log("[DEBUG] bug_report_modal_submit invoked", {
+      user: body.user?.id,
+      team: body.team?.id || body.team_id,
+      viewState: view.state?.values,
+      private_metadata: view.private_metadata
+    });
     // Collect all modal fields
     const title = view.state.values.title_block.title_input.value;
     const steps = view.state.values.steps_block.steps_input.value;
