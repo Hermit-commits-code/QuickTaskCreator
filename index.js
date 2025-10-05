@@ -41,10 +41,15 @@ const receiver = new ExpressReceiver({
 });
 
 // Initialize Slack Bolt app with ExpressReceiver
+
 const app = new App({
   token: SLACK_BOT_TOKEN,
   receiver,
 });
+
+// Serve static files from /public on the same port
+const path = require("path");
+receiver.app.use(express.static(path.join(__dirname, "public")));
 
 // Register admin handlers
 const registerAdminHandlers = require("./handlers/admin");
