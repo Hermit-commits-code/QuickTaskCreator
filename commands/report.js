@@ -124,7 +124,8 @@ module.exports = function (app, db) {
 
   app.command("/report", async ({ ack, body, client }) => {
     await ack();
-    getTaskStats((err, stats) => {
+    const workspace_id = body.team_id || body.team?.id;
+    getTaskStats(workspace_id, (err, stats) => {
       if (err) {
         client.chat.postEphemeral({
           channel: body.channel_id,
