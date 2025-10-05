@@ -16,9 +16,10 @@ Quick Task Creator is committed to protecting your privacy and data. This docume
 
 ## Data Protection
 
-- Sensitive fields (feedback, bug details) are encrypted before storage
-- No message content or personal information is stored
-- Data is never sold or shared with third parties
+- Sensitive fields (feedback, bug details) are encrypted before storage using industry-standard algorithms.
+- No message content or personal information is stored; only workspace and user IDs for analytics and multi-tenant support.
+- Data is never sold or shared with third parties.
+- All database queries are protected against injection and unauthorized access.
 
 ## Data Deletion
 
