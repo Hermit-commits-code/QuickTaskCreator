@@ -7,17 +7,44 @@ const { WebClient } = require('@slack/web-api');
 const { logWorkspace, logUser } = require('../models/analyticsModel');
 module.exports = function (app, db) {
   // /task-edit command now opens modal
-  app.command('/task-edit', async ({ ack, body, client }) => {
+  app.command('/task-edit', async ({ ack, body, client, logger }) => {
     await ack();
-    // Log analytics
-    logWorkspace(body.team_id, 'Slack Workspace');
-    logUser(body.user_id, body.team_id, 'Slack User');
-    getTokenForTeam(body.team_id, async (err, botToken) => {
+    const workspace_id = body.team_id;
+    const channel_id = body.channel_id;
+    const user_id = body.user_id;
+    if (logger) {
+      logger.info(
+        `[task-edit] workspace_id: ${workspace_id}, channel_id: ${channel_id}, user_id: ${user_id}`,
+      );
+    } else {
+      console.log(
+        '[task-edit] workspace_id:',
+        workspace_id,
+        'channel_id:',
+        channel_id,
+        'user_id:',
+        user_id,
+      );
+    }
+    logWorkspace(workspace_id, 'Slack Workspace');
+    logUser(user_id, workspace_id, 'Slack User');
+    getTokenForTeam(workspace_id, async (err, botToken) => {
       if (err || !botToken) {
-        console.error('No bot token found for workspace:', body.team_id, err);
+        if (logger)
+          logger.error(
+            '[task-edit] No bot token found for workspace:',
+            workspace_id,
+            err,
+          );
+        else
+          console.error(
+            '[task-edit] No bot token found for workspace:',
+            workspace_id,
+            err,
+          );
         await client.chat.postEphemeral({
-          channel: body.channel_id,
-          user: body.user_id,
+          channel: channel_id,
+          user: user_id,
           text: ':x: App not properly installed for this workspace. Please reinstall.',
         });
         return;
@@ -25,23 +52,52 @@ module.exports = function (app, db) {
       const realClient = new WebClient(botToken);
       db.all(
         `SELECT * FROM tasks WHERE status = 'open' AND (assigned_user = ? OR assigned_user IS NULL)`,
-        [body.user_id],
+        [user_id],
         async (err, rows) => {
           if (err || !rows.length) {
             await realClient.chat.postEphemeral({
-              channel: body.channel_id,
-              user: body.user_id,
+              channel: channel_id,
+              user: user_id,
               text: 'No open tasks to edit.',
             });
             return;
           }
-          await realClient.views.open({
-            trigger_id: body.trigger_id,
-            view: {
-              ...getEditTaskModal(rows),
-              private_metadata: JSON.stringify({ channel_id: body.channel_id }),
-            },
-          });
+          try {
+            await realClient.views.open({
+              trigger_id: body.trigger_id,
+              view: {
+                ...getEditTaskModal(rows),
+                private_metadata: JSON.stringify({ channel_id }),
+              },
+            });
+          } catch (apiErr) {
+            if (logger)
+              logger.error('[task-edit] Slack API error (modal open):', apiErr);
+            else
+              console.error(
+                '[task-edit] Slack API error (modal open):',
+                apiErr,
+              );
+            if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+              await realClient.chat.postEphemeral({
+                channel: channel_id,
+                user: user_id,
+                text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+              });
+            } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
+              await realClient.chat.postEphemeral({
+                channel: channel_id,
+                user: user_id,
+                text: ':x: User not found. Please check the user ID.',
+              });
+            } else {
+              await realClient.chat.postEphemeral({
+                channel: channel_id,
+                user: user_id,
+                text: ':x: An unexpected error occurred. Please contact support.',
+              });
+            }
+          }
         },
       );
     });

@@ -62,15 +62,23 @@ function buildAnalyticsBlocks(stats, recentStats, completionRate) {
 }
 
 module.exports = function (app, db) {
-  app.command('/report', async ({ ack, body, client }) => {
+  app.command('/report', async ({ ack, body, client, logger }) => {
     await ack();
     const workspace_id = body.team_id || body.team?.id;
+    const channel_id = body.channel_id;
+    const user_id = body.user_id;
+    logger.info(
+      `[report] workspace_id: ${workspace_id}, channel_id: ${channel_id}, user_id: ${user_id}`,
+    );
     getTokenForTeam(workspace_id, (err, botToken) => {
       if (err || !botToken) {
-        console.error('No bot token found for workspace:', workspace_id, err);
+        logger.error(
+          `[report] No bot token found for workspace: ${workspace_id}`,
+          err,
+        );
         client.chat.postEphemeral({
-          channel: body.channel_id,
-          user: body.user_id,
+          channel: channel_id,
+          user: user_id,
           text: ':x: App not properly installed for this workspace. Please reinstall.',
         });
         return;
@@ -78,9 +86,13 @@ module.exports = function (app, db) {
       const realClient = new WebClient(botToken);
       getTaskStats(workspace_id, (err, stats) => {
         if (err) {
+          logger.error(
+            `[report] Error generating report for workspace: ${workspace_id}`,
+            err,
+          );
           realClient.chat.postEphemeral({
-            channel: body.channel_id,
-            user: body.user_id,
+            channel: channel_id,
+            user: user_id,
             text: ':x: Error generating report.',
           });
           return;
@@ -94,7 +106,7 @@ module.exports = function (app, db) {
         db.all(
           'SELECT status, COUNT(*) as count FROM tasks WHERE date(created_at) >= date(?) GROUP BY status',
           [sevenDaysAgo.toISOString().slice(0, 10)],
-          (err2, recentRows) => {
+          async (err2, recentRows) => {
             let recentStats = { created: 0, completed: 0 };
             if (!err2 && recentRows) {
               recentRows.forEach((row) => {
@@ -103,18 +115,46 @@ module.exports = function (app, db) {
                 if (row.status === 'open') recentStats.created = row.count;
               });
             }
-            // Use buildAnalyticsBlocks for UI construction only
             const blocks = buildAnalyticsBlocks(
               stats,
               recentStats,
               completionRate,
             );
-            realClient.chat.postEphemeral({
-              channel: body.channel_id,
-              user: body.user_id,
-              blocks,
-              text: 'QuickTaskCreator Analytics',
-            });
+            try {
+              await realClient.chat.postEphemeral({
+                channel: channel_id,
+                user: user_id,
+                blocks,
+                text: 'QuickTaskCreator Analytics',
+              });
+            } catch (apiErr) {
+              logger.error(
+                `[report] Slack API error for workspace: ${workspace_id}, channel: ${channel_id}, user: ${user_id}`,
+                apiErr,
+              );
+              if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+                await realClient.chat.postEphemeral({
+                  channel: channel_id,
+                  user: user_id,
+                  text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+                });
+              } else if (
+                apiErr.data &&
+                apiErr.data.error === 'user_not_found'
+              ) {
+                await realClient.chat.postEphemeral({
+                  channel: channel_id,
+                  user: user_id,
+                  text: ':x: User not found. Please check the user ID.',
+                });
+              } else {
+                await realClient.chat.postEphemeral({
+                  channel: channel_id,
+                  user: user_id,
+                  text: ':x: An unexpected error occurred. Please contact support.',
+                });
+              }
+            }
           },
         );
       });

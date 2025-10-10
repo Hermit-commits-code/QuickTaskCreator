@@ -7,21 +7,42 @@ const { logWorkspace, logUser } = require('../models/analyticsModel');
 module.exports = function (app, db) {
   app.command(
     '/task-delete',
-    async ({ command, ack, client, body, respond }) => {
+    async ({ command, ack, client, body, respond, logger }) => {
       try {
         await ack();
-        // Log analytics
         const workspace_id = body.team_id;
+        const channel_id = body.channel_id;
+        const user_id = body.user_id;
+        if (logger) {
+          logger.info(
+            `[task-delete] workspace_id: ${workspace_id}, channel_id: ${channel_id}, user_id: ${user_id}`,
+          );
+        } else {
+          console.log(
+            '[task-delete] workspace_id:',
+            workspace_id,
+            'channel_id:',
+            channel_id,
+            'user_id:',
+            user_id,
+          );
+        }
         logWorkspace(workspace_id, 'Slack Workspace');
-        logUser(body.user_id, workspace_id, 'Slack User');
-        // Get the correct bot token for this workspace
+        logUser(user_id, workspace_id, 'Slack User');
         getTokenForTeam(workspace_id, async (err, botToken) => {
           if (err || !botToken) {
-            console.error(
-              'No bot token found for workspace:',
-              workspace_id,
-              err,
-            );
+            if (logger)
+              logger.error(
+                '[task-delete] No bot token found for workspace:',
+                workspace_id,
+                err,
+              );
+            else
+              console.error(
+                '[task-delete] No bot token found for workspace:',
+                workspace_id,
+                err,
+              );
             respond({
               text: ':x: App not properly installed for this workspace. Please reinstall.',
               response_type: 'ephemeral',
@@ -31,7 +52,6 @@ module.exports = function (app, db) {
           const realClient = new WebClient(botToken);
           const id = command.text.trim();
           if (!id) {
-            // No ID provided, show modal with dropdown of open tasks
             db.all(
               "SELECT id, description, due_date FROM tasks WHERE status = 'open' AND workspace_id = ?",
               [workspace_id],
@@ -43,15 +63,50 @@ module.exports = function (app, db) {
                   });
                   return;
                 }
-                await realClient.views.open({
-                  trigger_id: body.trigger_id,
-                  view: {
-                    ...getDeleteTaskModal(rows),
-                    private_metadata: JSON.stringify({
-                      channel_id: body.channel_id,
-                    }),
-                  },
-                });
+                try {
+                  await realClient.views.open({
+                    trigger_id: body.trigger_id,
+                    view: {
+                      ...getDeleteTaskModal(rows),
+                      private_metadata: JSON.stringify({
+                        channel_id: body.channel_id,
+                      }),
+                    },
+                  });
+                } catch (apiErr) {
+                  if (logger)
+                    logger.error(
+                      '[task-delete] Slack API error (modal open):',
+                      apiErr,
+                    );
+                  else
+                    console.error(
+                      '[task-delete] Slack API error (modal open):',
+                      apiErr,
+                    );
+                  if (
+                    apiErr.data &&
+                    apiErr.data.error === 'channel_not_found'
+                  ) {
+                    respond({
+                      text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+                      response_type: 'ephemeral',
+                    });
+                  } else if (
+                    apiErr.data &&
+                    apiErr.data.error === 'user_not_found'
+                  ) {
+                    respond({
+                      text: ':x: User not found. Please check the user ID.',
+                      response_type: 'ephemeral',
+                    });
+                  } else {
+                    respond({
+                      text: ':x: An unexpected error occurred. Please contact support.',
+                      response_type: 'ephemeral',
+                    });
+                  }
+                }
               },
             );
             return;
@@ -67,26 +122,59 @@ module.exports = function (app, db) {
                 });
                 return;
               }
-              await realClient.views.open({
-                trigger_id: body.trigger_id,
-                view: {
-                  ...getDeleteTaskModal([
-                    {
-                      id,
-                      description: row.description,
-                      due_date: row.due_date,
-                    },
-                  ]),
-                  private_metadata: JSON.stringify({
-                    channel_id: body.channel_id,
-                  }),
-                },
-              });
+              try {
+                await realClient.views.open({
+                  trigger_id: body.trigger_id,
+                  view: {
+                    ...getDeleteTaskModal([
+                      {
+                        id,
+                        description: row.description,
+                        due_date: row.due_date,
+                      },
+                    ]),
+                    private_metadata: JSON.stringify({
+                      channel_id: body.channel_id,
+                    }),
+                  },
+                });
+              } catch (apiErr) {
+                if (logger)
+                  logger.error(
+                    '[task-delete] Slack API error (modal open):',
+                    apiErr,
+                  );
+                else
+                  console.error(
+                    '[task-delete] Slack API error (modal open):',
+                    apiErr,
+                  );
+                if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+                  respond({
+                    text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+                    response_type: 'ephemeral',
+                  });
+                } else if (
+                  apiErr.data &&
+                  apiErr.data.error === 'user_not_found'
+                ) {
+                  respond({
+                    text: ':x: User not found. Please check the user ID.',
+                    response_type: 'ephemeral',
+                  });
+                } else {
+                  respond({
+                    text: ':x: An unexpected error occurred. Please contact support.',
+                    response_type: 'ephemeral',
+                  });
+                }
+              }
             },
           );
         });
       } catch (error) {
-        console.error('/task-delete error:', error);
+        if (logger) logger.error('[task-delete] error:', error);
+        else console.error('/task-delete error:', error);
         respond({
           text: ':x: Internal error. Please try again later.',
           response_type: 'ephemeral',

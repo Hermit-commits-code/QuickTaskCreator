@@ -13,22 +13,41 @@ module.exports = function (app, db) {
   registerBatchActions(app, db);
 
   // /tasks command and modal
-  app.command('/tasks', async ({ ack, respond, client, body }) => {
+  app.command('/tasks', async ({ ack, respond, client, body, logger }) => {
     await ack();
-    // Log analytics
     const workspace_id = body.team_id;
+    const channel_id = body.channel_id;
+    const user_id = body.user_id;
+    if (logger) {
+      logger.info(
+        `[tasks] workspace_id: ${workspace_id}, channel_id: ${channel_id}, user_id: ${user_id}`,
+      );
+    } else {
+      console.log(
+        '[tasks] workspace_id:',
+        workspace_id,
+        'channel_id:',
+        channel_id,
+        'user_id:',
+        user_id,
+      );
+    }
     logWorkspace(workspace_id, 'Slack Workspace');
-    logUser(body.user_id, workspace_id, 'Slack User');
-    // Debug: log channel_id and bot user info
-    console.log('/tasks called:', {
-      channel_id: body.channel_id,
-      user_id: body.user_id,
-      team_id: body.team_id,
-    });
-    // Get the correct bot token for this workspace
+    logUser(user_id, workspace_id, 'Slack User');
     getTokenForTeam(workspace_id, async (err, botToken) => {
       if (err || !botToken) {
-        console.error('No bot token found for workspace:', workspace_id, err);
+        if (logger)
+          logger.error(
+            '[tasks] No bot token found for workspace:',
+            workspace_id,
+            err,
+          );
+        else
+          console.error(
+            '[tasks] No bot token found for workspace:',
+            workspace_id,
+            err,
+          );
         respond({
           text: ':x: App not properly installed for this workspace. Please reinstall.',
           response_type: 'ephemeral',
@@ -38,9 +57,11 @@ module.exports = function (app, db) {
       const realClient = new WebClient(botToken);
       try {
         const authTest = await realClient.auth.test();
-        console.log('Bot user info:', authTest);
+        if (logger) logger.info('[tasks] Bot user info:', authTest);
+        else console.log('[tasks] Bot user info:', authTest);
       } catch (e) {
-        console.error('Error calling client.auth.test:', e);
+        if (logger) logger.error('[tasks] Error calling client.auth.test:', e);
+        else console.error('[tasks] Error calling client.auth.test:', e);
       }
       db.all(
         `SELECT * FROM tasks WHERE status = 'open' AND workspace_id = ?`,
@@ -51,7 +72,8 @@ module.exports = function (app, db) {
               text: 'Error fetching tasks.',
               response_type: 'ephemeral',
             });
-            console.error('[ERROR] /tasks: Error fetching tasks.', err);
+            if (logger) logger.error('[tasks] Error fetching tasks.', err);
+            else console.error('[tasks] Error fetching tasks.', err);
             return;
           }
           if (rows.length === 0) {
@@ -103,19 +125,32 @@ module.exports = function (app, db) {
               },
             ],
           });
-          realClient.chat
-            .postMessage({
-              channel: body.channel_id,
+          try {
+            await realClient.chat.postMessage({
+              channel: channel_id,
               blocks,
               text: 'Open Tasks',
-            })
-            .catch((error) => {
-              console.error('/tasks db callback error:', error);
+            });
+          } catch (error) {
+            if (logger) logger.error('[tasks] Slack API error:', error);
+            else console.error('[tasks] Slack API error:', error);
+            if (error.data && error.data.error === 'channel_not_found') {
               respond({
-                text: ':x: Internal error. Please try again later.',
+                text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
                 response_type: 'ephemeral',
               });
-            });
+            } else if (error.data && error.data.error === 'user_not_found') {
+              respond({
+                text: ':x: User not found. Please check the user ID.',
+                response_type: 'ephemeral',
+              });
+            } else {
+              respond({
+                text: ':x: An unexpected error occurred. Please contact support.',
+                response_type: 'ephemeral',
+              });
+            }
+          }
         },
       );
     });
