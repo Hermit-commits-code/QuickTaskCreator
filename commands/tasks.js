@@ -1,4 +1,6 @@
 const { logWorkspace, logUser } = require('../models/analyticsModel');
+const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const { WebClient } = require('@slack/web-api');
 module.exports = function (app, db) {
   // Register modularized handlers
   const {
@@ -23,87 +25,99 @@ module.exports = function (app, db) {
       user_id: body.user_id,
       team_id: body.team_id,
     });
-    try {
-      const authTest = await client.auth.test();
-      console.log('Bot user info:', authTest);
-    } catch (e) {
-      console.error('Error calling client.auth.test:', e);
-    }
-    db.all(
-      `SELECT * FROM tasks WHERE status = 'open' AND workspace_id = ?`,
-      [workspace_id],
-      async (err, rows) => {
-        if (err) {
-          respond({
-            text: 'Error fetching tasks.',
-            response_type: 'ephemeral',
-          });
-          console.error('[ERROR] /tasks: Error fetching tasks.', err);
-          return;
-        }
-        if (rows.length === 0) {
-          respond({ text: 'No open tasks.', response_type: 'ephemeral' });
-          return;
-        }
-        const blocks = rows.map((t) => {
-          let assigned = t.assigned_user
-            ? ` _(Assigned to: <@${t.assigned_user}> )_`
-            : '';
-          let due = t.due_date ? ` _(Due: ${t.due_date})_` : '';
-          let category = t.category ? ` _(Category: ${t.category})_` : '';
-          let tags = t.tags ? ` _(Tags: ${t.tags})_` : '';
-          let priority = t.priority ? ` _(Priority: ${t.priority})_` : '';
-          return {
-            type: 'section',
-            text: {
-              type: 'mrkdwn',
-              text: `*${t.description}*${assigned}${due}${category}${tags}${priority}`,
-            },
-            accessory: {
-              type: 'button',
-              text: { type: 'plain_text', text: 'Complete' },
-              action_id: `complete_task_${t.id}`,
-              value: String(t.id),
-            },
-          };
+    // Get the correct bot token for this workspace
+    getTokenForTeam(workspace_id, async (err, botToken) => {
+      if (err || !botToken) {
+        console.error('No bot token found for workspace:', workspace_id, err);
+        respond({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
         });
-        blocks.push({
-          type: 'actions',
-          elements: [
-            {
-              type: 'button',
-              text: { type: 'plain_text', text: 'Edit' },
-              action_id: 'edit_task',
-              value: 'edit',
-            },
-            {
-              type: 'button',
-              text: { type: 'plain_text', text: 'Delete' },
-              action_id: 'delete_task',
-              value: 'delete',
-            },
-            {
-              type: 'button',
-              text: { type: 'plain_text', text: 'Batch Actions' },
-              action_id: 'batch_task_actions',
-              value: 'batch',
-            },
-          ],
-        });
-        client.chat
-          .postMessage({
-            channel: body.channel_id,
-            blocks,
-            text: 'Open Tasks',
-          })
-          .catch((error) => {
-            console.error('/tasks db callback error:', error);
+        return;
+      }
+      const realClient = new WebClient(botToken);
+      try {
+        const authTest = await realClient.auth.test();
+        console.log('Bot user info:', authTest);
+      } catch (e) {
+        console.error('Error calling client.auth.test:', e);
+      }
+      db.all(
+        `SELECT * FROM tasks WHERE status = 'open' AND workspace_id = ?`,
+        [workspace_id],
+        async (err, rows) => {
+          if (err) {
             respond({
-              text: ':x: Internal error. Please try again later.',
+              text: 'Error fetching tasks.',
               response_type: 'ephemeral',
             });
+            console.error('[ERROR] /tasks: Error fetching tasks.', err);
+            return;
+          }
+          if (rows.length === 0) {
+            respond({ text: 'No open tasks.', response_type: 'ephemeral' });
+            return;
+          }
+          const blocks = rows.map((t) => {
+            let assigned = t.assigned_user
+              ? ` _(Assigned to: <@${t.assigned_user}> )_`
+              : '';
+            let due = t.due_date ? ` _(Due: ${t.due_date})_` : '';
+            let category = t.category ? ` _(Category: ${t.category})_` : '';
+            let tags = t.tags ? ` _(Tags: ${t.tags})_` : '';
+            let priority = t.priority ? ` _(Priority: ${t.priority})_` : '';
+            return {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `*${t.description}*${assigned}${due}${category}${tags}${priority}`,
+              },
+              accessory: {
+                type: 'button',
+                text: { type: 'plain_text', text: 'Complete' },
+                action_id: `complete_task_${t.id}`,
+                value: String(t.id),
+              },
+            };
           });
-      },
-    );
+          blocks.push({
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: { type: 'plain_text', text: 'Edit' },
+                action_id: 'edit_task',
+                value: 'edit',
+              },
+              {
+                type: 'button',
+                text: { type: 'plain_text', text: 'Delete' },
+                action_id: 'delete_task',
+                value: 'delete',
+              },
+              {
+                type: 'button',
+                text: { type: 'plain_text', text: 'Batch Actions' },
+                action_id: 'batch_task_actions',
+                value: 'batch',
+              },
+            ],
+          });
+          realClient.chat
+            .postMessage({
+              channel: body.channel_id,
+              blocks,
+              text: 'Open Tasks',
+            })
+            .catch((error) => {
+              console.error('/tasks db callback error:', error);
+              respond({
+                text: ':x: Internal error. Please try again later.',
+                response_type: 'ephemeral',
+              });
+            });
+        },
+      );
+    });
   });
 };

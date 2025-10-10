@@ -1,4 +1,6 @@
 const { getDeleteTaskModal } = require("../blockKit/deleteTaskModal");
+const { getTokenForTeam } = require("../models/workspaceTokensModel");
+const { WebClient } = require("@slack/web-api");
 
 // /task-delete command handler
 const { logWorkspace, logUser } = require("../models/analyticsModel");
@@ -12,24 +14,61 @@ module.exports = function (app, db) {
         const workspace_id = body.team_id;
         logWorkspace(workspace_id, "Slack Workspace");
         logUser(body.user_id, workspace_id, "Slack User");
-        const id = command.text.trim();
-        if (!id) {
-          // No ID provided, show modal with dropdown of open tasks
-          db.all(
-            "SELECT id, description, due_date FROM tasks WHERE status = 'open' AND workspace_id = ?",
-            [workspace_id],
-            async (err, rows) => {
-              if (err || !rows || rows.length === 0) {
+        // Get the correct bot token for this workspace
+        getTokenForTeam(workspace_id, async (err, botToken) => {
+          if (err || !botToken) {
+            console.error('No bot token found for workspace:', workspace_id, err);
+            respond({
+              text: ':x: App not properly installed for this workspace. Please reinstall.',
+              response_type: 'ephemeral',
+            });
+            return;
+          }
+          const realClient = new WebClient(botToken);
+          const id = command.text.trim();
+          if (!id) {
+            // No ID provided, show modal with dropdown of open tasks
+            db.all(
+              "SELECT id, description, due_date FROM tasks WHERE status = 'open' AND workspace_id = ?",
+              [workspace_id],
+              async (err, rows) => {
+                if (err || !rows || rows.length === 0) {
+                  respond({
+                    text: "No open tasks to delete.",
+                    response_type: "ephemeral",
+                  });
+                  return;
+                }
+                await realClient.views.open({
+                  trigger_id: body.trigger_id,
+                  view: {
+                    ...getDeleteTaskModal(rows),
+                    private_metadata: JSON.stringify({
+                      channel_id: body.channel_id,
+                    }),
+                  },
+                });
+              }
+            );
+            return;
+          }
+          db.get(
+            "SELECT description, due_date FROM tasks WHERE id = ? AND workspace_id = ?",
+            [id, workspace_id],
+            async (err, row) => {
+              if (err || !row) {
                 respond({
-                  text: "No open tasks to delete.",
+                  text: "\u2757 Task not found.",
                   response_type: "ephemeral",
                 });
                 return;
               }
-              await client.views.open({
+              await realClient.views.open({
                 trigger_id: body.trigger_id,
                 view: {
-                  ...getDeleteTaskModal(rows),
+                  ...getDeleteTaskModal([
+                    { id, description: row.description, due_date: row.due_date },
+                  ]),
                   private_metadata: JSON.stringify({
                     channel_id: body.channel_id,
                   }),
@@ -37,32 +76,7 @@ module.exports = function (app, db) {
               });
             }
           );
-          return;
-        }
-        db.get(
-          "SELECT description, due_date FROM tasks WHERE id = ? AND workspace_id = ?",
-          [id, workspace_id],
-          async (err, row) => {
-            if (err || !row) {
-              respond({
-                text: "\u2757 Task not found.",
-                response_type: "ephemeral",
-              });
-              return;
-            }
-            await client.views.open({
-              trigger_id: body.trigger_id,
-              view: {
-                ...getDeleteTaskModal([
-                  { id, description: row.description, due_date: row.due_date },
-                ]),
-                private_metadata: JSON.stringify({
-                  channel_id: body.channel_id,
-                }),
-              },
-            });
-          }
-        );
+        });
       } catch (error) {
         console.error("/task-delete error:", error);
         respond({
@@ -92,38 +106,46 @@ module.exports = function (app, db) {
     } catch (e) {
       channel_id = view.private_metadata || null;
     }
-    db.run(
-      "DELETE FROM tasks WHERE id = ? AND workspace_id = ?",
-      [taskId, workspace_id],
-      async function (err) {
-        const { logActivity } = require("../models/activityLogModel");
-        logActivity(
-          body.user.id,
-          "delete_task",
-          `Task ${taskId} deleted. Reason: ${reason || "N/A"}`
-        );
-        let msg = "";
-        if (err || this.changes === 0) {
-          msg =
-            "\u2757 Failed to delete task. Task not found or database error.";
-        } else {
-          msg = `:wastebasket: Task ${taskId} deleted. ${
-            reason ? "Reason: " + reason : ""
-          }`;
-        }
-        if (channel_id && channel_id.startsWith("C")) {
-          await client.chat.postEphemeral({
-            channel: channel_id,
-            user: body.user.id,
-            text: msg,
-          });
-        } else {
-          console.error(
-            "[ERROR] No valid channel_id for postEphemeral in /task-delete modal submission.",
-            channel_id
-          );
-        }
+    // Get the correct bot token for this workspace
+    getTokenForTeam(workspace_id, async (err, botToken) => {
+      if (err || !botToken) {
+        console.error('No bot token found for workspace:', workspace_id, err);
+        return;
       }
-    );
+      const realClient = new WebClient(botToken);
+      db.run(
+        "DELETE FROM tasks WHERE id = ? AND workspace_id = ?",
+        [taskId, workspace_id],
+        async function (err) {
+          const { logActivity } = require("../models/activityLogModel");
+          logActivity(
+            body.user.id,
+            "delete_task",
+            `Task ${taskId} deleted. Reason: ${reason || "N/A"}`
+          );
+          let msg = "";
+          if (err || this.changes === 0) {
+            msg =
+              "\u2757 Failed to delete task. Task not found or database error.";
+          } else {
+            msg = `:wastebasket: Task ${taskId} deleted. ${
+              reason ? "Reason: " + reason : ""
+            }`;
+          }
+          if (channel_id && channel_id.startsWith("C")) {
+            await realClient.chat.postEphemeral({
+              channel: channel_id,
+              user: body.user.id,
+              text: msg,
+            });
+          } else {
+            console.error(
+              "[ERROR] No valid channel_id for postEphemeral in /task-delete modal submission.",
+              channel_id
+            );
+          }
+        }
+      );
+    });
   });
 };

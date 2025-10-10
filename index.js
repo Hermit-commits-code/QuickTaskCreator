@@ -6,6 +6,11 @@ const { App, ExpressReceiver } = require('@slack/bolt');
 const express = require('express');
 // DB models
 const { db, initTaskTable } = require('./models/taskModel');
+const {
+  initWorkspaceTokensTable,
+  saveTokenForTeam,
+  getTokenForTeam,
+} = require('./models/workspaceTokensModel');
 const { initAdminsTable } = require('./models/initDb');
 const { initSettingsTable, getSetting } = require('./models/settingsModel');
 const { initActivityLogTable } = require('./models/activityLogModel');
@@ -33,6 +38,8 @@ const { createFeedbackTable } = require('./models/feedbackModel');
 const { createBugReportTable } = require('./models/bugReportModel');
 createFeedbackTable();
 createBugReportTable();
+// Initialize workspace tokens table
+initWorkspaceTokensTable();
 
 // Set up ExpressReceiver for HTTP endpoints
 const receiver = new ExpressReceiver({
@@ -80,6 +87,16 @@ receiver.app.get('/slack/oauth_redirect', async (req, res) => {
       },
     });
     if (response.data.ok) {
+      // Save workspace bot token
+      const teamId = response.data.team.id;
+      const botToken = response.data.access_token;
+      saveTokenForTeam(teamId, botToken, (err) => {
+        if (err) {
+          console.error('Error saving workspace token:', err);
+        } else {
+          console.log('Saved bot token for team:', teamId);
+        }
+      });
       res.sendFile(path.join(__dirname, 'public', 'success.html'));
     } else {
       console.error('Slack OAuth error:', response.data);
