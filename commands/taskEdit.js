@@ -1,17 +1,17 @@
 // /task-edit command handler
 
-const { getEditTaskModal } = require("../blockKit/editTaskModal");
-const { getTokenForTeam } = require("../models/workspaceTokensModel");
-const { WebClient } = require("@slack/web-api");
+const { getEditTaskModal } = require('../blockKit/editTaskModal');
+const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const { WebClient } = require('@slack/web-api');
 
-const { logWorkspace, logUser } = require("../models/analyticsModel");
+const { logWorkspace, logUser } = require('../models/analyticsModel');
 module.exports = function (app, db) {
   // /task-edit command now opens modal
-  app.command("/task-edit", async ({ ack, body, client }) => {
+  app.command('/task-edit', async ({ ack, body, client }) => {
     await ack();
     // Log analytics
-    logWorkspace(body.team_id, "Slack Workspace");
-    logUser(body.user_id, body.team_id, "Slack User");
+    logWorkspace(body.team_id, 'Slack Workspace');
+    logUser(body.user_id, body.team_id, 'Slack User');
     getTokenForTeam(body.team_id, async (err, botToken) => {
       if (err || !botToken) {
         console.error('No bot token found for workspace:', body.team_id, err);
@@ -31,7 +31,7 @@ module.exports = function (app, db) {
             await realClient.chat.postEphemeral({
               channel: body.channel_id,
               user: body.user_id,
-              text: "No open tasks to edit.",
+              text: 'No open tasks to edit.',
             });
             return;
           }
@@ -42,17 +42,17 @@ module.exports = function (app, db) {
               private_metadata: JSON.stringify({ channel_id: body.channel_id }),
             },
           });
-        }
+        },
       );
     });
   });
 
   // Modal submission handler
-  app.view("edit_task_modal_submit", async ({ ack, body, view, client }) => {
+  app.view('edit_task_modal_submit', async ({ ack, body, view, client }) => {
     await ack();
     const user = body.user.id;
     // Log analytics
-    logUser(user, body.team.id, "Slack User");
+    logUser(user, body.team.id, 'Slack User');
     const values = view.state.values;
     const taskId = values.task_block.task_select.selected_option.value;
     const newDesc = values.desc_block.desc_input.value;
@@ -77,18 +77,18 @@ module.exports = function (app, db) {
         `UPDATE tasks SET description = ?, due_date = ? WHERE id = ?`,
         [newDesc, newDue, taskId],
         function (err) {
-          const { logActivity } = require("../models/activityLogModel");
+          const { logActivity } = require('../models/activityLogModel');
           logActivity(
             user,
-            "edit_task",
-            `Task ${taskId} edited. New description: ${newDesc}, New due: ${newDue}`
+            'edit_task',
+            `Task ${taskId} edited. New description: ${newDesc}, New due: ${newDue}`,
           );
-          if (channel_id && channel_id.startsWith("C")) {
+          if (channel_id && channel_id.startsWith('C')) {
             if (err || this.changes === 0) {
               realClient.chat.postEphemeral({
                 channel: channel_id,
                 user,
-                text: "\u2757 Failed to edit task. Task not found or database error.",
+                text: '\u2757 Failed to edit task. Task not found or database error.',
               });
             } else {
               realClient.chat.postEphemeral({
@@ -99,11 +99,11 @@ module.exports = function (app, db) {
             }
           } else {
             console.error(
-              "[ERROR] No valid channel_id for postEphemeral in /task-edit modal submission.",
-              channel_id
+              '[ERROR] No valid channel_id for postEphemeral in /task-edit modal submission.',
+              channel_id,
             );
           }
-        }
+        },
       );
     });
   });
