@@ -15,105 +15,105 @@
         "description": "Create a new task",
         "usage_hint": "Open modal to create a task",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/tasks",
         "description": "List all open tasks",
         "usage_hint": "Show all open tasks in workspace",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/task-edit",
         "description": "Edit a task",
         "usage_hint": "/task-edit <task id> <new description>",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/task-complete",
         "description": "Complete a task",
         "usage_hint": "Open modal to complete a task",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/task-delete",
         "description": "Delete a task",
         "usage_hint": "/task-delete <task id>",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/add-admin",
         "description": "Add an admin",
         "usage_hint": "Open modal to add admin",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/removeadmin",
         "description": "Remove an admin",
         "usage_hint": "Open modal to remove admin",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/setdigestchannel",
         "description": "Set digest channel",
         "usage_hint": "/setdigestchannel <channel_id>",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/setconfig",
         "description": "Configure workspace settings",
         "usage_hint": "Open modal to configure settings",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/report",
         "description": "View analytics/reporting",
         "usage_hint": "Show workspace analytics and reports",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/listadmins",
         "description": "List all admins",
         "usage_hint": "Show all workspace admins",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/notifyprefs",
         "description": "Set notification preferences",
         "usage_hint": "Open modal to set notification preferences",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/help",
         "description": "Get help",
         "usage_hint": "Show help and usage tips",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/support",
         "description": "Contact support",
         "usage_hint": "Open modal to contact support",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       },
       {
         "command": "/delete-workspace-data",
         "description": "Delete all workspace data (admin only)",
         "usage_hint": "Open modal to confirm workspace data deletion (admin only)",
         "should_escape": false,
-        "url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/commands"
+        "url": "https://quicktaskcreator-production.up.railway.app/slack/commands"
       }
     ]
   },
@@ -132,12 +132,12 @@
   },
   "settings": {
     "event_subscriptions": {
-      "request_url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/events",
+      "request_url": "https://quicktaskcreator-production.up.railway.app/slack/events",
       "bot_events": ["app_home_opened"]
     },
     "interactivity": {
       "is_enabled": true,
-      "request_url": "https://cubistic-glossingly-reynalda.ngrok-free.dev/slack/events"
+      "request_url": "https://quicktaskcreator-production.up.railway.app/slack/events"
     },
     "org_deploy_enabled": false,
     "socket_mode_enabled": false

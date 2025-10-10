@@ -138,7 +138,9 @@ Quick Task Creator is a professional, frictionless Slack app for structured task
 | `/tasks`                 | _(none)_                                         | `/tasks`                                | List all open tasks with interactive buttons                        |
 | `/task-edit`             | `<task id> <new description> [@user] [due date]` | `/task-edit 123 Update docs <@U123456>` | Edit and assign/reassign a task                                     |
 | `/task-complete`         | _(no arguments needed)_                          | `/task-complete`                        | Open modal to complete one of your tasks                            |
-| `/task-delete`           | _(no arguments needed)_                          | `/task-delete`                          | Open modal to delete a task (admin/all)                             |
+| `/task-delete`           |git rm --cached .env
+git commit -m "Remove .env from repo for security"
+git push _(no arguments needed)_                          | `/task-delete`                          | Open modal to delete a task (admin/all)                             |
 | `/add-admin`             | _(no arguments needed)_                          | `/add-admin`                            | Open modal to add admin privileges                                  |
 | `/removeadmin`           | _(no arguments needed)_                          | `/removeadmin`                          | Open modal to remove admin privileges                               |
 | `/setdigestchannel`      | `<channel_id>`                                   | `/setdigestchannel C12345678`           | Set the Slack channel for daily digest                              |

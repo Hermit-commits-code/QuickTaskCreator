@@ -2,17 +2,17 @@
 // Register generic catch-all handlers after app initialization
 // ...existing code...
 // Command handlers are now registered in commands.js
-const { App, ExpressReceiver } = require("@slack/bolt");
-const express = require("express");
+const { App, ExpressReceiver } = require('@slack/bolt');
+const express = require('express');
 // DB models
-const { db, initTaskTable } = require("./models/taskModel");
-const { initAdminsTable } = require("./models/initDb");
-const { initSettingsTable, getSetting } = require("./models/settingsModel");
-const { initActivityLogTable } = require("./models/activityLogModel");
+const { db, initTaskTable } = require('./models/taskModel');
+const { initAdminsTable } = require('./models/initDb');
+const { initSettingsTable, getSetting } = require('./models/settingsModel');
+const { initActivityLogTable } = require('./models/activityLogModel');
 const {
   initNotificationPreferencesTable,
-} = require("./models/notificationPreferencesModel");
-require("dotenv").config();
+} = require('./models/notificationPreferencesModel');
+require('dotenv').config();
 
 // Load environment variables
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET;
@@ -26,18 +26,18 @@ initAdminsTable(); // Ensure admins table migration runs
 initSettingsTable();
 initActivityLogTable();
 initNotificationPreferencesTable();
-const { initAnalyticsTables } = require("./models/analyticsModel");
+const { initAnalyticsTables } = require('./models/analyticsModel');
 initAnalyticsTables();
 // Ensure feedback and bug report tables exist
-const { createFeedbackTable } = require("./models/feedbackModel");
-const { createBugReportTable } = require("./models/bugReportModel");
+const { createFeedbackTable } = require('./models/feedbackModel');
+const { createBugReportTable } = require('./models/bugReportModel');
 createFeedbackTable();
 createBugReportTable();
 
 // Set up ExpressReceiver for HTTP endpoints
 const receiver = new ExpressReceiver({
   signingSecret: SLACK_SIGNING_SECRET,
-  endpoints: ["/slack/commands", "/slack/events"],
+  endpoints: ['/slack/commands', '/slack/events'],
 });
 
 // Initialize Slack Bolt app with ExpressReceiver
@@ -48,29 +48,67 @@ const app = new App({
 });
 
 // Serve static files from /public on the same port
-const path = require("path");
-receiver.app.use(express.static(path.join(__dirname, "public")));
+const path = require('path');
+receiver.app.use(express.static(path.join(__dirname, 'public')));
+
+// --- OAuth Redirect Handler for Slack Installation ---
+const axios = require('axios');
+receiver.app.get('/slack/oauth_redirect', async (req, res) => {
+  const code = req.query.code;
+  const clientId = process.env.SLACK_CLIENT_ID;
+  const clientSecret = process.env.SLACK_CLIENT_SECRET;
+  const redirectUri =
+    process.env.SLACK_REDIRECT_URI ||
+    `${req.protocol}://${req.get('host')}/slack/oauth_redirect`;
+  if (!code) {
+    return res.status(400).send('Missing code parameter.');
+  }
+  if (!clientId || !clientSecret) {
+    return res
+      .status(500)
+      .send(
+        'Missing SLACK_CLIENT_ID or SLACK_CLIENT_SECRET in environment. Please add them to your .env file.',
+      );
+  }
+  try {
+    const response = await axios.get('https://slack.com/api/oauth.v2.access', {
+      params: {
+        code,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+      },
+    });
+    if (response.data.ok) {
+      res.sendFile(path.join(__dirname, 'public', 'success.html'));
+    } else {
+      res.sendFile(path.join(__dirname, 'public', 'error.html'));
+    }
+  } catch (err) {
+    res.status(500).send('OAuth error.');
+  }
+});
 
 // Register admin handlers
-const registerAdminHandlers = require("./handlers/admin");
+const registerAdminHandlers = require('./handlers/admin');
 registerAdminHandlers(app, db);
 
 // Register all command handlers
-require("./commands")(app, db);
-require("./commands/removeAdmin")(app, db);
-require("./commands/setconfig")(app, db);
-require("./commands/report")(app, db);
-require("./commands/auditlog")(app);
-require("./commands/welcome")(app); // Onboarding welcome message
-require("./commands/help")(app);
-require("./commands/support")(app);
+require('./commands')(app, db);
+require('./commands/removeAdmin')(app, db);
+require('./commands/setconfig')(app, db);
+require('./commands/report')(app, db);
+require('./commands/auditlog')(app);
+require('./commands/welcome')(app); // Onboarding welcome message
+require('./commands/help')(app);
+require('./commands/support')(app);
 
 // Digest channel config
 let digestChannelId = process.env.TASKS_CHANNEL_ID;
 
 // Register services
-const { startReminderScheduler } = require("./services/reminderService");
-const { startDigestScheduler } = require("./services/digestService");
+const { startReminderScheduler } = require('./services/reminderService');
+const { startDigestScheduler } = require('./services/digestService');
 startReminderScheduler(app);
 startDigestScheduler(app, digestChannelId);
 
