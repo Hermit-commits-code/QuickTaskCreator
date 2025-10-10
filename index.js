@@ -82,9 +82,14 @@ receiver.app.get('/slack/oauth_redirect', async (req, res) => {
     if (response.data.ok) {
       res.sendFile(path.join(__dirname, 'public', 'success.html'));
     } else {
+      console.error('Slack OAuth error:', response.data);
       res.sendFile(path.join(__dirname, 'public', 'error.html'));
     }
   } catch (err) {
+    console.error(
+      'Slack OAuth exception:',
+      err.response ? err.response.data : err,
+    );
     res.status(500).send('OAuth error.');
   }
 });
