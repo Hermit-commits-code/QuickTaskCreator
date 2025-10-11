@@ -41,16 +41,19 @@ async function slackHandler(req, res) {
     return res.status(400).send('Missing request body');
   }
   console.log('Slack handler received req.body:', req.body);
-  let payload = req.body;
-  // If interactive, Slack sends a 'payload' field as a JSON string
-  if (typeof payload.payload === 'string') {
+  let payload;
+  // If this is an interactive event, Slack sends a 'payload' field as a JSON string
+  if (typeof req.body.payload === 'string') {
     try {
-      payload = JSON.parse(payload.payload);
+      payload = JSON.parse(req.body.payload);
       console.log('Parsed interactive payload:', payload);
     } catch (e) {
       console.error('Invalid payload JSON:', e);
       return res.status(400).send('Invalid payload JSON');
     }
+  } else {
+    // For slash commands, the payload is the form-encoded body itself
+    payload = req.body;
   }
   if (!payload || typeof payload !== 'object') {
     console.error('Slack handler: Invalid payload structure', payload);
