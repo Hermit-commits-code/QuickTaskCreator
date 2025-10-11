@@ -4,16 +4,23 @@
 module.exports = function registerDynamicTaskSelectHandler(app) {
   app.action(
     (payload) => {
-      return (
-        payload &&
-        payload.type === 'block_actions' &&
-        payload.actions &&
-        Array.isArray(payload.actions) &&
-        payload.actions.some(
-          (a) => a.action_id === 'task_select' && a.type !== 'button',
-        ) &&
-        payload.view &&
-        payload.view.callback_id === 'delete_task_modal_submit'
+      // Only match static_select (dropdown) actions with action_id 'task_select' in the delete modal
+      if (
+        !payload ||
+        payload.type !== 'block_actions' ||
+        !Array.isArray(payload.actions)
+      )
+        return false;
+      if (
+        !payload.view ||
+        payload.view.callback_id !== 'delete_task_modal_submit'
+      )
+        return false;
+      // Find an action with action_id 'task_select' and type 'static_select' (or fallback for legacy payloads)
+      return payload.actions.some(
+        (a) =>
+          a.action_id === 'task_select' &&
+          (a.type === 'static_select' || (!a.type && a.selected_option)),
       );
     },
     async ({ ack, body, client, action, payload }) => {
