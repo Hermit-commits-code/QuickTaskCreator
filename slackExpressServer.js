@@ -32,6 +32,9 @@ app.use('/slack/events', verifySlackSignature(slackSigningSecret));
 // Main Slack events endpoint
 // Unified Slack handler for both /slack/events and /slack/commands
 async function slackHandler(req, res) {
+  if (!req.body) {
+    return res.status(400).send('Missing request body');
+  }
   let payload = req.body;
   // If interactive, Slack sends a 'payload' field as a JSON string
   if (typeof payload.payload === 'string') {
