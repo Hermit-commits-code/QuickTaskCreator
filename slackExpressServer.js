@@ -1,5 +1,9 @@
 const axios = require('axios');
-// ...existing code...
+const express = require('express');
+const bodyParser = require('body-parser');
+const { WebClient } = require('@slack/web-api');
+const verifySlackSignature = require('./utils/verifySlackSignature');
+require('dotenv').config();
 const app = express();
 // Health check route for deployment debugging
 app.get('/', (req, res) => res.send('OK'));
@@ -38,7 +42,7 @@ app.get('/slack/oauth_redirect', async (req, res) => {
     }
     // Store tokens and team info in DB (best-practice: upsert)
     const db = await require('./db')();
-    await db.collection('workspaceTokens').updateOne(
+    await db.collection('workspace_tokens').updateOne(
       { team_id: data.team.id },
       {
         $set: {
