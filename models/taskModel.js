@@ -1,6 +1,4 @@
 // models/taskModel.js
-const connectDB = require('../db');
-
 // MongoDB-based task model functions only
 const connectDB = require('../db');
 const { ObjectId } = require('mongodb');
