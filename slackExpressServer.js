@@ -28,7 +28,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/slack/events', verifySlackSignature(slackSigningSecret));
 
 // Main Slack events endpoint
-app.post('/slack/events', async (req, res) => {
+// Unified Slack handler for both /slack/events and /slack/commands
+async function slackHandler(req, res) {
   const payload = req.body;
   // Respond to Slack's URL verification challenge
   if (payload.type === 'url_verification') {
@@ -182,7 +183,10 @@ app.post('/slack/events', async (req, res) => {
 
   // Default ack for unhandled events
   res.status(200).send();
-});
+}
+
+app.post('/slack/events', slackHandler);
+app.post('/slack/commands', slackHandler);
 
 app.listen(port, () => {
   console.log(`Slack Express server running on port ${port}`);
