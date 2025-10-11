@@ -1,5 +1,3 @@
-// Health check route for deployment debugging
-app.get('/', (req, res) => res.send('OK'));
 const express = require('express');
 const bodyParser = require('body-parser');
 const { WebClient } = require('@slack/web-api');
@@ -7,6 +5,8 @@ const verifySlackSignature = require('./utils/verifySlackSignature');
 require('dotenv').config();
 
 const app = express();
+// Health check route for deployment debugging
+app.get('/', (req, res) => res.send('OK'));
 const port = process.env.PORT || 8080;
 const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
