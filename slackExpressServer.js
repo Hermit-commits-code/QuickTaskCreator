@@ -1,3 +1,5 @@
+// Health check route for deployment debugging
+app.get('/', (req, res) => res.send('OK'));
 const express = require('express');
 const bodyParser = require('body-parser');
 const { WebClient } = require('@slack/web-api');
