@@ -1,3 +1,49 @@
+// Slack OAuth redirect route (best-practice)
+const axios = require('axios');
+app.get('/slack/oauth_redirect', async (req, res) => {
+  const { code, error } = req.query;
+  if (error) {
+    return res.status(400).send('Slack OAuth failed: ' + error);
+  }
+  if (!code) {
+    return res.status(400).send('Missing code parameter from Slack.');
+  }
+  try {
+    // Exchange code for access token
+    const response = await axios.post('https://slack.com/api/oauth.v2.access', null, {
+      params: {
+        code,
+        client_id: process.env.SLACK_CLIENT_ID,
+        client_secret: process.env.SLACK_CLIENT_SECRET,
+        redirect_uri: process.env.SLACK_REDIRECT_URI,
+      },
+    });
+    const data = response.data;
+    if (!data.ok) {
+      return res.status(400).send('Slack OAuth error: ' + (data.error || 'Unknown error'));
+    }
+    // Store tokens and team info in DB (best-practice: upsert)
+    const db = await require('./db')();
+    await db.collection('workspaceTokens').updateOne(
+      { team_id: data.team.id },
+      {
+        $set: {
+          team_id: data.team.id,
+          team_name: data.team.name,
+          access_token: data.access_token,
+          bot_user_id: data.bot_user_id,
+          authed_user: data.authed_user,
+          installed_at: new Date(),
+        },
+      },
+      { upsert: true }
+    );
+    return res.send('Slack app installed successfully! You can now use the app in your workspace.');
+  } catch (err) {
+    console.error('Slack OAuth error:', err);
+    return res.status(500).send('Internal server error during Slack OAuth.');
+  }
+});
 const express = require('express');
 const bodyParser = require('body-parser');
 const { WebClient } = require('@slack/web-api');
@@ -123,7 +169,10 @@ async function slackHandler(req, res) {
           .find({ status: 'open', workspace_id })
           .toArray();
         if (rows.length === 0) {
-          return res.json({ text: 'No open tasks.', response_type: 'ephemeral' });
+          return res.json({
+            text: 'No open tasks.',
+            response_type: 'ephemeral',
+          });
         }
         const blocks = rows.map((t) => {
           let assigned = t.assigned_user
