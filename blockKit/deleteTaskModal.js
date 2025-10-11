@@ -4,46 +4,46 @@ function getDeleteTaskModal(tasks, selectedTaskId) {
   let selectedTask = null;
   if (selectedTaskId) {
     selectedTask = tasks.find(
-      (t) => String(t._id || t.id) === String(selectedTaskId)
+      (t) => String(t._id || t.id) === String(selectedTaskId),
     );
   }
   return {
-    type: "modal",
-    callback_id: "delete_task_modal_submit",
+    type: 'modal',
+    callback_id: 'delete_task_modal_submit',
     title: {
-      type: "plain_text",
-      text: "Delete Task",
+      type: 'plain_text',
+      text: 'Delete Task',
     },
     submit: {
-      type: "plain_text",
-      text: "Delete",
+      type: 'plain_text',
+      text: 'Delete',
     },
     close: {
-      type: "plain_text",
-      text: "Cancel",
+      type: 'plain_text',
+      text: 'Cancel',
     },
     blocks: [
       {
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
-          text: "*Delete Task*\n_All fields are accessible. Use Tab to navigate. Labels and placeholders are screen reader friendly._",
+          type: 'mrkdwn',
+          text: '*Delete Task*\n_All fields are accessible. Use Tab to navigate. Labels and placeholders are screen reader friendly._',
         },
       },
       {
-        type: "input",
-        block_id: "task_block",
+        type: 'input',
+        block_id: 'task_block',
         element: {
-          type: "static_select",
-          action_id: "task_select",
+          type: 'static_select',
+          action_id: 'task_select',
           placeholder: {
-            type: "plain_text",
-            text: "Select a task to delete. (Screen reader: Task select input)",
+            type: 'plain_text',
+            text: 'Select a task to delete. (Screen reader: Task select input)',
           },
           options: tasks.map((task) => ({
             text: {
-              type: "plain_text",
-              text: `${task.description} (Due: ${task.due_date || "N/A"})`,
+              type: 'plain_text',
+              text: `${task.description} (Due: ${task.due_date || 'N/A'})`,
             },
             value: String(task._id || task.id),
           })),
@@ -51,11 +51,13 @@ function getDeleteTaskModal(tasks, selectedTaskId) {
             ? {
                 initial_option: {
                   text: {
-                    type: "plain_text",
+                    type: 'plain_text',
                     text:
                       selectedTask && selectedTask.description
-                        ? `${selectedTask.description} (Due: ${selectedTask.due_date || "N/A"})`
-                        : "",
+                        ? `${selectedTask.description} (Due: ${
+                            selectedTask.due_date || 'N/A'
+                          })`
+                        : '',
                   },
                   value: String(selectedTaskId),
                 },
@@ -63,106 +65,110 @@ function getDeleteTaskModal(tasks, selectedTaskId) {
             : {}),
         },
         label: {
-          type: "plain_text",
-          text: "Task (required)",
+          type: 'plain_text',
+          text: 'Task (required)',
         },
         hint: {
-          type: "plain_text",
-          text: "Select the task to delete. Accessible for screen readers.",
+          type: 'plain_text',
+          text: 'Select the task to delete. Accessible for screen readers.',
         },
       },
       {
-        type: "input",
-        block_id: "reason_block",
+        type: 'input',
+        block_id: 'reason_block',
         element: {
-          type: "plain_text_input",
-          action_id: "reason_input",
+          type: 'plain_text_input',
+          action_id: 'reason_input',
           multiline: true,
           placeholder: {
-            type: "plain_text",
-            text: "Reason (optional)",
+            type: 'plain_text',
+            text: 'Reason (optional)',
           },
         },
         label: {
-          type: "plain_text",
-          text: "Reason",
+          type: 'plain_text',
+          text: 'Reason',
         },
         optional: true,
       },
       {
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
-          text: "*Optional Details*",
+          type: 'mrkdwn',
+          text: '*Optional Details*',
         },
       },
       {
-        type: "input",
-        block_id: "category_block",
+        type: 'input',
+        block_id: 'category_block',
         element: {
-          type: "plain_text_input",
-          action_id: "category_input",
+          type: 'plain_text_input',
+          action_id: 'category_input',
           placeholder: {
-            type: "plain_text",
-            text: "Category (e.g. Bug)",
+            type: 'plain_text',
+            text: 'Category (e.g. Bug)',
           },
           ...(selectedTask && selectedTask.category
             ? { initial_value: selectedTask.category }
             : {}),
         },
         label: {
-          type: "plain_text",
-          text: "Category",
+          type: 'plain_text',
+          text: 'Category',
         },
         optional: true,
       },
       {
-        type: "input",
-        block_id: "tags_block",
+        type: 'input',
+        block_id: 'tags_block',
         element: {
-          type: "plain_text_input",
-          action_id: "tags_input",
+          type: 'plain_text_input',
+          action_id: 'tags_input',
           placeholder: {
-            type: "plain_text",
-            text: "Tags (comma-separated)",
+            type: 'plain_text',
+            text: 'Tags (comma-separated)',
           },
           ...(selectedTask && selectedTask.tags
-            ? { initial_value: Array.isArray(selectedTask.tags) ? selectedTask.tags.join(", ") : selectedTask.tags }
+            ? {
+                initial_value: Array.isArray(selectedTask.tags)
+                  ? selectedTask.tags.join(', ')
+                  : selectedTask.tags,
+              }
             : {}),
         },
         label: {
-          type: "plain_text",
-          text: "Tags",
+          type: 'plain_text',
+          text: 'Tags',
         },
         optional: true,
       },
       {
-        type: "input",
-        block_id: "priority_block",
+        type: 'input',
+        block_id: 'priority_block',
         element: {
-          type: "static_select",
-          action_id: "priority_select",
+          type: 'static_select',
+          action_id: 'priority_select',
           placeholder: {
-            type: "plain_text",
-            text: "Priority",
+            type: 'plain_text',
+            text: 'Priority',
           },
           options: [
-            { text: { type: "plain_text", text: "Low" }, value: "Low" },
-            { text: { type: "plain_text", text: "Medium" }, value: "Medium" },
-            { text: { type: "plain_text", text: "High" }, value: "High" },
+            { text: { type: 'plain_text', text: 'Low' }, value: 'Low' },
+            { text: { type: 'plain_text', text: 'Medium' }, value: 'Medium' },
+            { text: { type: 'plain_text', text: 'High' }, value: 'High' },
           ],
           ...(selectedTask && selectedTask.priority
             ? {
                 initial_option: {
-                  text: { type: "plain_text", text: selectedTask.priority },
+                  text: { type: 'plain_text', text: selectedTask.priority },
                   value: selectedTask.priority,
                 },
               }
             : {}),
         },
         label: {
-          type: "plain_text",
-          text: "Priority",
+          type: 'plain_text',
+          text: 'Priority',
         },
         optional: true,
       },

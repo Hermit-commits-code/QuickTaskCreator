@@ -94,21 +94,44 @@ function registerSingleTaskHandlers(app) {
   });
 
   // Dynamic autopopulate: update modal when task is selected
-  app.action({ block_id: 'task_block', action_id: 'task_select' }, async ({ ack, body, client, action }) => {
-    await ack();
-    try {
-      const workspace_id = body.team.id;
-      const rows = await taskModel.getOpenTasks(workspace_id);
-      const selectedTaskId = action.selected_option.value;
-      await client.views.update({
-        view_id: body.view.id,
-        hash: body.view.hash,
-        view: getDeleteTaskModal(rows, selectedTaskId),
-      });
-    } catch (err) {
-      // Optionally handle error
-    }
-  });
+  app.action(
+    (payload) => {
+      // Robust match for block_id/action_id in all payload types
+      if (!payload || !payload.actions || !Array.isArray(payload.actions))
+        return false;
+      return payload.actions.some(
+        (a) => a.action_id === 'task_select' && a.block_id === 'task_block',
+      );
+    },
+    async ({ ack, body, client, action, payload }) => {
+      await ack();
+      try {
+        const workspace_id = body.team.id;
+        const rows = await taskModel.getOpenTasks(workspace_id);
+        // Find the selected taskId robustly
+        let selectedTaskId = null;
+        if (action && action.selected_option) {
+          selectedTaskId = action.selected_option.value;
+        } else if (
+          payload &&
+          payload.actions &&
+          payload.actions[0] &&
+          payload.actions[0].selected_option
+        ) {
+          selectedTaskId = payload.actions[0].selected_option.value;
+        }
+        if (!selectedTaskId) return;
+        await client.views.update({
+          view_id: body.view.id,
+          hash: body.view.hash,
+          view: getDeleteTaskModal(rows, selectedTaskId),
+        });
+      } catch (err) {
+        // Optionally handle error
+        console.error('Error in dynamic task_select handler:', err);
+      }
+    },
+  );
 }
 
 module.exports = { registerSingleTaskHandlers };
