@@ -2,6 +2,27 @@
 
 ---
 
+## 🥇 Top Priority: Migrate from Slack Bolt to Lower-Level Slack SDKs
+
+**Goal:**
+Refactor the Slack app to use @slack/web-api and custom Express routing instead of Slack Bolt, for full control over event handling and to eliminate handler/ack issues.
+
+**Migration Plan:**
+
+- Set up Express server to receive Slack events and actions (block_actions, view_submissions, etc.)
+- Implement Slack signature verification middleware for security
+- Route incoming events/actions to custom handler functions
+- Manually ack (res.send()) all Slack events within 3 seconds
+- Use @slack/web-api for all Slack API calls (modals, messages, etc.)
+- Refactor all existing Bolt handlers to Express route handlers
+- Test all workflows, especially modals and dynamic updates
+- Remove Slack Bolt dependency
+
+**Note:**
+Slash commands will continue to work—just handle them as POST routes in Express, parse the payload, and respond as needed. No loss of functionality.
+
+---
+
 ## ✅ Completed Features
 
 - Modal-based task creation, editing, completion, and deletion
@@ -22,11 +43,11 @@
 
 ---
 
-## 🚧 Upcoming Features & Improvements
+## 🚧 In Progress & Upcoming Features
 
 ### Free Tier (Core)
 
-✅ Accessibility enhancements
+- Accessibility enhancements
 
 ### Premium Tier (Advanced/Business)
 

@@ -18,7 +18,7 @@ module.exports = function registerDynamicTaskSelectHandler(app) {
         return false;
       // Debug: log actions array
       console.log(
-        '[DEBUG] dynamicTaskSelectHandler filter actions:',
+        '[DEBUG] actions array:',
         JSON.stringify(payload.actions, null, 2),
       );
       // Only match if at least one action is exactly task_select + static_select

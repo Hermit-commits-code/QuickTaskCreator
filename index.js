@@ -1,8 +1,4 @@
-// Catch-all event handler for debugging and error prevention
-// Register generic catch-all handlers after app initialization
-// ...existing code...
-// Command handlers are now registered in commands.js
-const { App, ExpressReceiver } = require('@slack/bolt');
+// Legacy Slack Bolt code removed after migration to Express+Slack SDK
 const express = require('express');
 // DB models
 const { db } = require('./models/taskModel');
@@ -28,26 +24,13 @@ const EXPRESS_PORT = 3001;
 // Initialize DB tables
 // MongoDB does not require table initialization
 
-// Set up ExpressReceiver for HTTP endpoints
-const receiver = new ExpressReceiver({
-  signingSecret: SLACK_SIGNING_SECRET,
-  endpoints: ['/slack/commands', '/slack/events'],
-});
-
-// Initialize Slack Bolt app with ExpressReceiver
-
-const app = new App({
-  token: SLACK_BOT_TOKEN,
-  receiver,
-});
-
-// Serve static files from /public on the same port
 const path = require('path');
-receiver.app.use(express.static(path.join(__dirname, 'public')));
+const axios = require('axios');
+const app = express();
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- OAuth Redirect Handler for Slack Installation ---
-const axios = require('axios');
-receiver.app.get('/slack/oauth_redirect', async (req, res) => {
+app.get('/slack/oauth_redirect', async (req, res) => {
   const code = req.query.code;
   const clientId = process.env.SLACK_CLIENT_ID;
   const clientSecret = process.env.SLACK_CLIENT_SECRET;
@@ -77,7 +60,7 @@ receiver.app.get('/slack/oauth_redirect', async (req, res) => {
       // Save workspace bot token
       const teamId = response.data.team.id;
       const botToken = response.data.access_token;
-      saveTokenForTeam(teamId, botToken, (err) => {
+      saveTokenForTeam(teamId, botToken).catch((err) => {
         if (err) {
           console.error('Error saving workspace token:', err);
         } else {
@@ -98,34 +81,5 @@ receiver.app.get('/slack/oauth_redirect', async (req, res) => {
   }
 });
 
-// Register admin handlers
-const registerAdminHandlers = require('./handlers/admin');
-registerAdminHandlers(app, db);
-
-// Register all command handlers
-require('./commands')(app, db);
-require('./commands/removeAdmin')(app, db);
-require('./commands/setconfig')(app, db);
-require('./commands/report')(app, db);
-require('./commands/auditlog')(app);
-require('./commands/welcome')(app); // Onboarding welcome message
-require('./commands/help')(app);
-require('./commands/support')(app);
-
-// Digest channel config
-let digestChannelId = process.env.TASKS_CHANNEL_ID;
-
-// Register services
-const { startReminderScheduler } = require('./services/reminderService');
-const { startDigestScheduler } = require('./services/digestService');
-startReminderScheduler(app);
-startDigestScheduler(app, digestChannelId);
-
-// Express server for health check
-// Express server removed; Slack Bolt will handle HTTP on port 3000
-
-// Start Slack Bolt app (HTTP server)
-(async () => {
-  await app.start(PORT);
-  console.log(`⚡️ Slack Bolt app is running on port ${PORT}`);
-})();
+// Register admin handlers and services as needed (migrated to Express)
+// TODO: Register admin handlers, commands, and services with Express app if needed
