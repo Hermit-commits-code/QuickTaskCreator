@@ -81,42 +81,60 @@ function registerSingleTaskHandlers(app) {
   });
 
   // Delete button handler (precise action_id match)
-  app.action('delete_task', async ({ ack, body, client }) => {
-    console.log('[DEBUG] delete_task action handler fired');
-    let acked = false;
-    const safeAck = async () => {
-      if (!acked) {
-        acked = true;
-        await ack();
-      }
-    };
-    await safeAck();
-    setImmediate(async () => {
-      try {
-        // const workspace_id = body.team.id;
-        // const rows = await taskModel.getOpenTasks(workspace_id);
-        // if (!rows.length) {
-        //   await client.chat.postEphemeral({
-        //     channel: body.channel.id,
-        //     user: body.user.id,
-        //     text: 'No open tasks to delete.',
-        //   });
-        //   return;
-        // }
-        // await client.views.open({
-        //   trigger_id: body.trigger_id,
-        //   view: getDeleteTaskModal(rows),
-        // });
-        console.log('[DEBUG] delete_task action handler would open modal here');
-      } catch (err) {
-        await client.chat.postEphemeral({
-          channel: body.channel.id,
-          user: body.user.id,
-          text: 'Error fetching tasks.',
-        });
-      }
-    });
-  });
+  app.action(
+    (payload) => {
+      // Only match the initial delete_task button, not modal interactions
+      return (
+        payload &&
+        payload.type === 'block_actions' &&
+        payload.actions &&
+        Array.isArray(payload.actions) &&
+        payload.actions.some((a) => a.action_id === 'delete_task')
+      );
+    },
+    async ({ ack, body, client, payload }) => {
+      console.log('[DEBUG] delete_task action handler fired');
+      console.log(
+        '[DEBUG] delete_task payload:',
+        JSON.stringify(payload, null, 2),
+      );
+      let acked = false;
+      const safeAck = async () => {
+        if (!acked) {
+          acked = true;
+          await ack();
+        }
+      };
+      await safeAck();
+      setImmediate(async () => {
+        try {
+          // const workspace_id = body.team.id;
+          // const rows = await taskModel.getOpenTasks(workspace_id);
+          // if (!rows.length) {
+          //   await client.chat.postEphemeral({
+          //     channel: body.channel.id,
+          //     user: body.user.id,
+          //     text: 'No open tasks to delete.',
+          //   });
+          //   return;
+          // }
+          // await client.views.open({
+          //   trigger_id: body.trigger_id,
+          //   view: getDeleteTaskModal(rows),
+          // });
+          console.log(
+            '[DEBUG] delete_task action handler would open modal here',
+          );
+        } catch (err) {
+          await client.chat.postEphemeral({
+            channel: body.channel.id,
+            user: body.user.id,
+            text: 'Error fetching tasks.',
+          });
+        }
+      });
+    },
+  );
 
   // ...existing code...
   // let selectedTaskId = null;
@@ -140,6 +158,10 @@ function registerSingleTaskHandlers(app) {
     },
     async ({ ack, body, client, action, payload }) => {
       console.log('[DEBUG] dynamic task_select handler fired');
+      console.log(
+        '[DEBUG] dynamic task_select payload:',
+        JSON.stringify(payload, null, 2),
+      );
       let acked = false;
       const safeAck = async () => {
         if (!acked) {
