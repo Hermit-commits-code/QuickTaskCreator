@@ -12,7 +12,6 @@ const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const webClient = new WebClient(slackBotToken);
 
-
 // Only capture raw body for Slack routes, then parse body, then verify signature
 app.use(['/slack/events', '/slack/commands'], (req, res, next) => {
   let data = '';
@@ -25,25 +24,36 @@ app.use(['/slack/events', '/slack/commands'], (req, res, next) => {
   });
 });
 app.use(['/slack/events', '/slack/commands'], bodyParser.json());
-app.use(['/slack/events', '/slack/commands'], bodyParser.urlencoded({ extended: true }));
-app.use(['/slack/events', '/slack/commands'], verifySlackSignature(slackSigningSecret));
+app.use(
+  ['/slack/events', '/slack/commands'],
+  bodyParser.urlencoded({ extended: true }),
+);
+app.use(
+  ['/slack/events', '/slack/commands'],
+  verifySlackSignature(slackSigningSecret),
+);
 
 // Main Slack events endpoint
 // Unified Slack handler for both /slack/events and /slack/commands
 async function slackHandler(req, res) {
   if (!req.body) {
+    console.error('Slack handler: Missing request body');
     return res.status(400).send('Missing request body');
   }
+  console.log('Slack handler received req.body:', req.body);
   let payload = req.body;
   // If interactive, Slack sends a 'payload' field as a JSON string
   if (typeof payload.payload === 'string') {
     try {
       payload = JSON.parse(payload.payload);
+      console.log('Parsed interactive payload:', payload);
     } catch (e) {
+      console.error('Invalid payload JSON:', e);
       return res.status(400).send('Invalid payload JSON');
     }
   }
   if (!payload || typeof payload !== 'object') {
+    console.error('Slack handler: Invalid payload structure', payload);
     return res.status(400).send('Invalid payload');
   }
   // Respond to Slack's URL verification challenge
