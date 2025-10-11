@@ -32,7 +32,15 @@ app.use('/slack/events', verifySlackSignature(slackSigningSecret));
 // Main Slack events endpoint
 // Unified Slack handler for both /slack/events and /slack/commands
 async function slackHandler(req, res) {
-  const payload = req.body;
+  let payload = req.body;
+  // If interactive, Slack sends a 'payload' field as a JSON string
+  if (typeof payload.payload === 'string') {
+    try {
+      payload = JSON.parse(payload.payload);
+    } catch (e) {
+      return res.status(400).send('Invalid payload JSON');
+    }
+  }
   if (!payload || typeof payload !== 'object') {
     return res.status(400).send('Invalid payload');
   }
