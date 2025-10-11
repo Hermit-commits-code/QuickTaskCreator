@@ -5,7 +5,7 @@
 const { App, ExpressReceiver } = require('@slack/bolt');
 const express = require('express');
 // DB models
-const { db, initTaskTable } = require('./models/taskModel');
+const { db } = require('./models/taskModel');
 const {
   initWorkspaceTokensTable,
   saveTokenForTeam,
@@ -26,20 +26,7 @@ const PORT = process.env.PORT || 3000;
 const EXPRESS_PORT = 3001;
 
 // Initialize DB tables
-initTaskTable();
-initAdminsTable(); // Ensure admins table migration runs
-initSettingsTable();
-initActivityLogTable();
-initNotificationPreferencesTable();
-const { initAnalyticsTables } = require('./models/analyticsModel');
-initAnalyticsTables();
-// Ensure feedback and bug report tables exist
-const { createFeedbackTable } = require('./models/feedbackModel');
-const { createBugReportTable } = require('./models/bugReportModel');
-createFeedbackTable();
-createBugReportTable();
-// Initialize workspace tokens table
-initWorkspaceTokensTable();
+// MongoDB does not require table initialization
 
 // Set up ExpressReceiver for HTTP endpoints
 const receiver = new ExpressReceiver({
