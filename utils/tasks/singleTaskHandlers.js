@@ -67,27 +67,46 @@ function registerSingleTaskHandlers(app) {
   // Delete button handler
   app.action('delete_task', async ({ ack, body, client }) => {
     await ack();
-    try {
-      const workspace_id = body.team.id;
-      const rows = await taskModel.getOpenTasks(workspace_id);
-      if (!rows.length) {
+    setImmediate(async () => {
+      try {
+        const workspace_id = body.team.id;
+        const rows = await taskModel.getOpenTasks(workspace_id);
+        if (!rows.length) {
+          await client.chat.postEphemeral({
+            channel: body.channel.id,
+            user: body.user.id,
+            text: 'No open tasks to delete.',
+          });
+          return;
+        }
+        await client.views.open({
+          trigger_id: body.trigger_id,
+          view: getDeleteTaskModal(rows),
+        });
+      } catch (err) {
         await client.chat.postEphemeral({
           channel: body.channel.id,
           user: body.user.id,
-          text: 'No open tasks to delete.',
+          text: 'Error fetching tasks.',
         });
-        return;
       }
-      await client.views.open({
-        trigger_id: body.trigger_id,
-        view: getDeleteTaskModal(rows),
+    });
+  });
+
+  // Dynamic autopopulate: update modal when task is selected
+  app.action({ block_id: 'task_block', action_id: 'task_select' }, async ({ ack, body, client, action }) => {
+    await ack();
+    try {
+      const workspace_id = body.team.id;
+      const rows = await taskModel.getOpenTasks(workspace_id);
+      const selectedTaskId = action.selected_option.value;
+      await client.views.update({
+        view_id: body.view.id,
+        hash: body.view.hash,
+        view: getDeleteTaskModal(rows, selectedTaskId),
       });
     } catch (err) {
-      await client.chat.postEphemeral({
-        channel: body.channel.id,
-        user: body.user.id,
-        text: 'Error fetching tasks.',
-      });
+      // Optionally handle error
     }
   });
 }

@@ -1,5 +1,12 @@
 // Block Kit modal for deleting a task with optional reason
-function getDeleteTaskModal(tasks) {
+function getDeleteTaskModal(tasks, selectedTaskId) {
+  // Find the selected task object
+  let selectedTask = null;
+  if (selectedTaskId) {
+    selectedTask = tasks.find(
+      (t) => String(t._id || t.id) === String(selectedTaskId)
+    );
+  }
   return {
     type: "modal",
     callback_id: "delete_task_modal_submit",
@@ -16,7 +23,6 @@ function getDeleteTaskModal(tasks) {
       text: "Cancel",
     },
     blocks: [
-      // Section divider for clarity
       {
         type: "section",
         text: {
@@ -39,8 +45,22 @@ function getDeleteTaskModal(tasks) {
               type: "plain_text",
               text: `${task.description} (Due: ${task.due_date || "N/A"})`,
             },
-            value: String(task.id),
+            value: String(task._id || task.id),
           })),
+          ...(selectedTaskId
+            ? {
+                initial_option: {
+                  text: {
+                    type: "plain_text",
+                    text:
+                      selectedTask && selectedTask.description
+                        ? `${selectedTask.description} (Due: ${selectedTask.due_date || "N/A"})`
+                        : "",
+                  },
+                  value: String(selectedTaskId),
+                },
+              }
+            : {}),
         },
         label: {
           type: "plain_text",
@@ -69,7 +89,6 @@ function getDeleteTaskModal(tasks) {
         },
         optional: true,
       },
-      // Optional fields section
       {
         type: "section",
         text: {
@@ -87,6 +106,9 @@ function getDeleteTaskModal(tasks) {
             type: "plain_text",
             text: "Category (e.g. Bug)",
           },
+          ...(selectedTask && selectedTask.category
+            ? { initial_value: selectedTask.category }
+            : {}),
         },
         label: {
           type: "plain_text",
@@ -104,6 +126,9 @@ function getDeleteTaskModal(tasks) {
             type: "plain_text",
             text: "Tags (comma-separated)",
           },
+          ...(selectedTask && selectedTask.tags
+            ? { initial_value: Array.isArray(selectedTask.tags) ? selectedTask.tags.join(", ") : selectedTask.tags }
+            : {}),
         },
         label: {
           type: "plain_text",
@@ -126,6 +151,14 @@ function getDeleteTaskModal(tasks) {
             { text: { type: "plain_text", text: "Medium" }, value: "Medium" },
             { text: { type: "plain_text", text: "High" }, value: "High" },
           ],
+          ...(selectedTask && selectedTask.priority
+            ? {
+                initial_option: {
+                  text: { type: "plain_text", text: selectedTask.priority },
+                  value: selectedTask.priority,
+                },
+              }
+            : {}),
         },
         label: {
           type: "plain_text",
