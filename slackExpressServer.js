@@ -33,6 +33,9 @@ app.use('/slack/events', verifySlackSignature(slackSigningSecret));
 // Unified Slack handler for both /slack/events and /slack/commands
 async function slackHandler(req, res) {
   const payload = req.body;
+  if (!payload || typeof payload !== 'object') {
+    return res.status(400).send('Invalid payload');
+  }
   // Respond to Slack's URL verification challenge
   if (payload.type === 'url_verification') {
     return res.send({ challenge: payload.challenge });
