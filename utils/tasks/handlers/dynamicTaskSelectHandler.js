@@ -16,11 +16,14 @@ module.exports = function registerDynamicTaskSelectHandler(app) {
         payload.view.callback_id !== 'delete_task_modal_submit'
       )
         return false;
-      // Find an action with action_id 'task_select' and type 'static_select' (or fallback for legacy payloads)
+      // Debug: log actions array
+      console.log(
+        '[DEBUG] dynamicTaskSelectHandler filter actions:',
+        JSON.stringify(payload.actions, null, 2),
+      );
+      // Only match if at least one action is exactly task_select + static_select
       return payload.actions.some(
-        (a) =>
-          a.action_id === 'task_select' &&
-          (a.type === 'static_select' || (!a.type && a.selected_option)),
+        (a) => a.action_id === 'task_select' && a.type === 'static_select',
       );
     },
     async ({ ack, body, client, action, payload }) => {
