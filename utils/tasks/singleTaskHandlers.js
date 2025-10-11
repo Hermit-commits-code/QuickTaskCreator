@@ -4,8 +4,8 @@ const { getDeleteTaskModal } = require('../../blockKit/deleteTaskModal');
 
 const taskModel = require('../../models/taskModel');
 function registerSingleTaskHandlers(app) {
-  // Complete button handler
-  app.action(/complete_task_\d+/, async ({ ack, body, client, action }) => {
+  // Complete button handler (precise action_id match)
+  app.action('complete_task', async ({ ack, body, client, action }) => {
     await ack();
     const taskId = action.value;
     try {
@@ -33,7 +33,7 @@ function registerSingleTaskHandlers(app) {
     }
   });
 
-  // Edit button handler
+  // Edit button handler (precise action_id match)
   app.action('edit_task', async ({ ack, body, client }) => {
     await ack();
     try {
@@ -64,7 +64,7 @@ function registerSingleTaskHandlers(app) {
     }
   });
 
-  // Delete button handler
+  // Delete button handler (precise action_id match)
   app.action('delete_task', async ({ ack, body, client }) => {
     await ack();
     setImmediate(async () => {
