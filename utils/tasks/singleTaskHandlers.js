@@ -8,7 +8,12 @@ function registerSingleTaskHandlers(app) {
   app.action('complete_task', async ({ ack, body, client, action }) => {
     console.log('[DEBUG] complete_task action handler fired');
     let acked = false;
-    const safeAck = async () => { if (!acked) { acked = true; await ack(); } };
+    const safeAck = async () => {
+      if (!acked) {
+        acked = true;
+        await ack();
+      }
+    };
     await safeAck();
     const taskId = action.value;
     try {
@@ -40,7 +45,12 @@ function registerSingleTaskHandlers(app) {
   app.action('edit_task', async ({ ack, body, client }) => {
     console.log('[DEBUG] edit_task action handler fired');
     let acked = false;
-    const safeAck = async () => { if (!acked) { acked = true; await ack(); } };
+    const safeAck = async () => {
+      if (!acked) {
+        acked = true;
+        await ack();
+      }
+    };
     await safeAck();
     try {
       const workspace_id = body.team.id;
@@ -74,7 +84,12 @@ function registerSingleTaskHandlers(app) {
   app.action('delete_task', async ({ ack, body, client }) => {
     console.log('[DEBUG] delete_task action handler fired');
     let acked = false;
-    const safeAck = async () => { if (!acked) { acked = true; await ack(); } };
+    const safeAck = async () => {
+      if (!acked) {
+        acked = true;
+        await ack();
+      }
+    };
     await safeAck();
     setImmediate(async () => {
       try {
@@ -103,27 +118,35 @@ function registerSingleTaskHandlers(app) {
     });
   });
 
-  // Dynamic autopopulate: update modal when task is selected
+  // ...existing code...
+  // let selectedTaskId = null;
+  // if (action && action.selected_option) {
+  //   selectedTaskId = action.selected_option.value;
+  // } else if (
+  //   payload &&
   app.action(
     (payload) => {
       // Only match for delete modal's task select, and only for block_actions
       if (!payload || payload.type !== 'block_actions') return false;
       if (!payload.actions || !Array.isArray(payload.actions)) return false;
       if (
-        app.action(
-          (payload) => {
-            // Only match for delete modal's task select, and only for block_actions
-            if (!payload || payload.type !== 'block_actions') return false;
-            if (!payload.actions || !Array.isArray(payload.actions)) return false;
-            if (!payload.view || payload.view.callback_id !== 'delete_task_modal_submit') return false;
-            return payload.actions.some(
-              (a) => a.action_id === 'task_select' && a.block_id === 'task_block',
-            );
+        !payload.view ||
+        payload.view.callback_id !== 'delete_task_modal_submit'
+      )
+        return false;
+      return payload.actions.some(
+        (a) => a.action_id === 'task_select' && a.block_id === 'task_block',
+      );
     },
     async ({ ack, body, client, action, payload }) => {
       console.log('[DEBUG] dynamic task_select handler fired');
       let acked = false;
-      const safeAck = async () => { if (!acked) { acked = true; await ack(); } };
+      const safeAck = async () => {
+        if (!acked) {
+          acked = true;
+          await ack();
+        }
+      };
       await safeAck();
       try {
         // const workspace_id = body.team.id;
@@ -145,10 +168,14 @@ function registerSingleTaskHandlers(app) {
         //   hash: body.view.hash,
         //   view: getDeleteTaskModal(rows, selectedTaskId),
         // });
-        console.log('[DEBUG] dynamic task_select handler would update modal here');
+        console.log(
+          '[DEBUG] dynamic task_select handler would update modal here',
+        );
       } catch (err) {
         console.error('Error in dynamic task_select handler:', err);
       }
     },
   );
+}
+
 module.exports = { registerSingleTaskHandlers };
