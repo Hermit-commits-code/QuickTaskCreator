@@ -96,9 +96,9 @@ function registerSingleTaskHandlers(app) {
   // Dynamic autopopulate: update modal when task is selected
   app.action(
     (payload) => {
-      // Robust match for block_id/action_id in all payload types
-      if (!payload || !payload.actions || !Array.isArray(payload.actions))
-        return false;
+      // Only match for delete modal's task select
+      if (!payload || !payload.actions || !Array.isArray(payload.actions)) return false;
+      if (!payload.view || payload.view.callback_id !== 'delete_task_modal_submit') return false;
       return payload.actions.some(
         (a) => a.action_id === 'task_select' && a.block_id === 'task_block',
       );
