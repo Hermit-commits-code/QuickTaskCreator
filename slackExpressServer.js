@@ -12,25 +12,20 @@ const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const webClient = new WebClient(slackBotToken);
 
-// Only capture raw body for Slack routes, then parse body, then verify signature
-app.use(['/slack/events', '/slack/commands'], (req, res, next) => {
-  let data = '';
-  req.on('data', (chunk) => {
-    data += chunk;
-  });
-  req.on('end', () => {
-    req.rawBody = data;
-    next();
-  });
-});
-app.use(['/slack/events', '/slack/commands'], bodyParser.json());
-app.use(
+
+// Only capture raw body for Slack routes
+function rawBodySaver(req, res, buf, encoding) {
+  if (buf && buf.length) {
+    req.rawBody = buf.toString(encoding || 'utf8');
+  }
+}
+
+app.post(
   ['/slack/events', '/slack/commands'],
-  bodyParser.urlencoded({ extended: true }),
-);
-app.use(
-  ['/slack/events', '/slack/commands'],
+  bodyParser.json({ verify: rawBodySaver }),
+  bodyParser.urlencoded({ extended: true, verify: rawBodySaver }),
   verifySlackSignature(slackSigningSecret),
+  slackHandler
 );
 
 // Main Slack events endpoint
