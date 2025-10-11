@@ -1,26 +1,41 @@
-// Slack OAuth redirect route (best-practice)
 const axios = require('axios');
+// ...existing code...
+const app = express();
+// Health check route for deployment debugging
+app.get('/', (req, res) => res.send('OK'));
+const port = process.env.PORT || 8080;
+const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
+const slackBotToken = process.env.SLACK_BOT_TOKEN;
+
+// Slack OAuth redirect route (best-practice)
 app.get('/slack/oauth_redirect', async (req, res) => {
   const { code, error } = req.query;
   if (error) {
     return res.status(400).send('Slack OAuth failed: ' + error);
   }
+const app = express();
   if (!code) {
     return res.status(400).send('Missing code parameter from Slack.');
   }
   try {
     // Exchange code for access token
-    const response = await axios.post('https://slack.com/api/oauth.v2.access', null, {
-      params: {
-        code,
-        client_id: process.env.SLACK_CLIENT_ID,
-        client_secret: process.env.SLACK_CLIENT_SECRET,
-        redirect_uri: process.env.SLACK_REDIRECT_URI,
+    const response = await axios.post(
+      'https://slack.com/api/oauth.v2.access',
+      null,
+      {
+        params: {
+          code,
+          client_id: process.env.SLACK_CLIENT_ID,
+          client_secret: process.env.SLACK_CLIENT_SECRET,
+          redirect_uri: process.env.SLACK_REDIRECT_URI,
+        },
       },
-    });
+    );
     const data = response.data;
     if (!data.ok) {
-      return res.status(400).send('Slack OAuth error: ' + (data.error || 'Unknown error'));
+      return res
+        .status(400)
+        .send('Slack OAuth error: ' + (data.error || 'Unknown error'));
     }
     // Store tokens and team info in DB (best-practice: upsert)
     const db = await require('./db')();
@@ -36,9 +51,11 @@ app.get('/slack/oauth_redirect', async (req, res) => {
           installed_at: new Date(),
         },
       },
-      { upsert: true }
+      { upsert: true },
     );
-    return res.send('Slack app installed successfully! You can now use the app in your workspace.');
+    return res.send(
+      'Slack app installed successfully! You can now use the app in your workspace.',
+    );
   } catch (err) {
     console.error('Slack OAuth error:', err);
     return res.status(500).send('Internal server error during Slack OAuth.');
