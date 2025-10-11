@@ -12,8 +12,9 @@ const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const webClient = new WebClient(slackBotToken);
 
-// Capture raw body for signature verification
-app.use((req, res, next) => {
+
+// Only capture raw body for Slack routes, then parse body, then verify signature
+app.use(['/slack/events', '/slack/commands'], (req, res, next) => {
   let data = '';
   req.on('data', (chunk) => {
     data += chunk;
@@ -23,11 +24,9 @@ app.use((req, res, next) => {
     next();
   });
 });
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Slack signature verification middleware
-app.use('/slack/events', verifySlackSignature(slackSigningSecret));
+app.use(['/slack/events', '/slack/commands'], bodyParser.json());
+app.use(['/slack/events', '/slack/commands'], bodyParser.urlencoded({ extended: true }));
+app.use(['/slack/events', '/slack/commands'], verifySlackSignature(slackSigningSecret));
 
 // Main Slack events endpoint
 // Unified Slack handler for both /slack/events and /slack/commands
