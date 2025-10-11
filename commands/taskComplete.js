@@ -2,7 +2,8 @@ const { getCompleteTaskModal } = require('../blockKit/completeTaskModal');
 const { getTokenForTeam } = require('../models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
 const { logWorkspace, logUser } = require('../models/analyticsModel');
-module.exports = function (app, db) {
+const taskModel = require('../models/taskModel');
+module.exports = function (app) {
   app.command('/task-complete', async ({ ack, client, body, logger }) => {
     await ack();
     const workspace_id = body.team_id;
@@ -46,59 +47,51 @@ module.exports = function (app, db) {
         return;
       }
       const realClient = new WebClient(botToken);
-      db.all(
-        "SELECT id, description, due_date FROM tasks WHERE status = 'open' AND workspace_id = ?",
-        [workspace_id],
-        async (err, rows) => {
-          if (err || !rows || rows.length === 0) {
-            await realClient.chat.postEphemeral({
-              channel: channel_id,
-              user: user_id,
-              text: 'No open tasks to complete.',
-            });
-            return;
-          }
-          try {
-            await realClient.views.open({
-              trigger_id: body.trigger_id,
-              view: {
-                ...getCompleteTaskModal(rows, { mode: 'complete' }),
-                private_metadata: JSON.stringify({ channel_id }),
-              },
-            });
-          } catch (apiErr) {
-            if (logger)
-              logger.error(
-                '[task-complete] Slack API error (modal open):',
-                apiErr,
-              );
-            else
-              console.error(
-                '[task-complete] Slack API error (modal open):',
-                apiErr,
-              );
-            if (apiErr.data && apiErr.data.error === 'channel_not_found') {
-              await realClient.chat.postEphemeral({
-                channel: channel_id,
-                user: user_id,
-                text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
-              });
-            } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
-              await realClient.chat.postEphemeral({
-                channel: channel_id,
-                user: user_id,
-                text: ':x: User not found. Please check the user ID.',
-              });
-            } else {
-              await realClient.chat.postEphemeral({
-                channel: channel_id,
-                user: user_id,
-                text: ':x: An unexpected error occurred. Please contact support.',
-              });
-            }
-          }
-        },
-      );
+      try {
+        const rows = await taskModel.getOpenTasks(workspace_id);
+        if (!rows || rows.length === 0) {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: 'No open tasks to complete.',
+          });
+          return;
+        }
+        await realClient.views.open({
+          trigger_id: body.trigger_id,
+          view: {
+            ...getCompleteTaskModal(rows, { mode: 'complete' }),
+            private_metadata: JSON.stringify({ channel_id }),
+          },
+        });
+      } catch (apiErr) {
+        if (logger)
+          logger.error('[task-complete] Slack API error (modal open):', apiErr);
+        else
+          console.error(
+            '[task-complete] Slack API error (modal open):',
+            apiErr,
+          );
+        if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+          });
+        } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':x: User not found. Please check the user ID.',
+          });
+        } else {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':x: An unexpected error occurred. Please contact support.',
+          });
+        }
+      }
     });
   });
 
@@ -164,50 +157,37 @@ module.exports = function (app, db) {
         }
         const realClient = new WebClient(botToken);
         for (const taskId of selectedTaskIds) {
-          db.run(
-            'UPDATE tasks SET status = "complete" WHERE id = ?',
-            [taskId],
-            async function (err) {
-              logActivity(
-                user_id,
-                'complete_task',
-                `Task ${taskId} marked complete. Notes: ${notes || 'N/A'}`,
-              );
-              if (err || this.changes === 0) {
-                failed.push(taskId);
-              } else {
-                completed.push(taskId);
-              }
-              if (completed.length + failed.length === selectedTaskIds.length) {
-                let msg = '';
-                if (completed.length)
-                  msg += `:white_check_mark: Completed: ${completed.join(
-                    ', ',
-                  )}.`;
-                if (failed.length)
-                  msg += `\n:warning: Failed: ${failed.join(', ')}.`;
-                if (notes) msg += `\nNotes: ${notes}`;
-                try {
-                  await realClient.chat.postEphemeral({
-                    channel: channel_id,
-                    user: user_id,
-                    text: msg,
-                  });
-                } catch (apiErr) {
-                  if (logger)
-                    logger.error(
-                      '[task-complete modal] Slack API error:',
-                      apiErr,
-                    );
-                  else
-                    console.error(
-                      '[task-complete modal] Slack API error:',
-                      apiErr,
-                    );
-                }
-              }
-            },
-          );
+          try {
+            const result = await taskModel.completeTask(workspace_id, taskId);
+            logActivity(
+              user_id,
+              'complete_task',
+              `Task ${taskId} marked complete. Notes: ${notes || 'N/A'}`,
+            );
+            if (!result || result.modifiedCount === 0) {
+              failed.push(taskId);
+            } else {
+              completed.push(taskId);
+            }
+          } catch (err) {
+            failed.push(taskId);
+          }
+        }
+        let msg = '';
+        if (completed.length)
+          msg += `:white_check_mark: Completed: ${completed.join(', ')}.`;
+        if (failed.length) msg += `\n:warning: Failed: ${failed.join(', ')}.`;
+        if (notes) msg += `\nNotes: ${notes}`;
+        try {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: msg,
+          });
+        } catch (apiErr) {
+          if (logger)
+            logger.error('[task-complete modal] Slack API error:', apiErr);
+          else console.error('[task-complete modal] Slack API error:', apiErr);
         }
       });
     },

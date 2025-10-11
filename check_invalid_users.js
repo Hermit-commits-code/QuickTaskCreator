@@ -1,10 +1,10 @@
 // check_invalid_users.js
-// Script to find invalid Slack user IDs in the tasks table
-const sqlite3 = require('sqlite3').verbose();
+
+// Script to find invalid Slack user IDs in the tasks collection (MongoDB)
+const connectDB = require('./db');
 const axios = require('axios');
 require('dotenv').config();
 
-const db = new sqlite3.Database('./tasks.db');
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
 
 async function checkUser(userId) {
@@ -19,20 +19,24 @@ async function checkUser(userId) {
   }
 }
 
-db.all(
-  'SELECT id, assigned_user FROM tasks WHERE assigned_user IS NOT NULL',
-  async (err, rows) => {
-    if (err) {
-      console.error('DB error:', err);
-      process.exit(1);
-    }
-    for (const row of rows) {
-      if (!row.assigned_user) continue;
-      const valid = await checkUser(row.assigned_user);
+(async () => {
+  try {
+    const db = await connectDB();
+    const tasks = await db
+      .collection('tasks')
+      .find({ assigned_user: { $ne: null } })
+      .project({ _id: 1, assigned_user: 1 })
+      .toArray();
+    for (const task of tasks) {
+      if (!task.assigned_user) continue;
+      const valid = await checkUser(task.assigned_user);
       if (!valid) {
-        console.log(`Task ${row.id} has invalid user: ${row.assigned_user}`);
+        console.log(`Task ${task._id} has invalid user: ${task.assigned_user}`);
       }
     }
-    db.close();
-  },
-);
+    process.exit(0);
+  } catch (err) {
+    console.error('DB error:', err);
+    process.exit(1);
+  }
+})();
