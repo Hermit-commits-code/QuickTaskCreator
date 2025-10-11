@@ -13,7 +13,6 @@ app.get('/slack/oauth_redirect', async (req, res) => {
   if (error) {
     return res.status(400).send('Slack OAuth failed: ' + error);
   }
-const app = express();
   if (!code) {
     return res.status(400).send('Missing code parameter from Slack.');
   }
@@ -61,19 +60,6 @@ const app = express();
     return res.status(500).send('Internal server error during Slack OAuth.');
   }
 });
-const express = require('express');
-const bodyParser = require('body-parser');
-const { WebClient } = require('@slack/web-api');
-const verifySlackSignature = require('./utils/verifySlackSignature');
-require('dotenv').config();
-
-const app = express();
-// Health check route for deployment debugging
-app.get('/', (req, res) => res.send('OK'));
-const port = process.env.PORT || 8080;
-const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
-const slackBotToken = process.env.SLACK_BOT_TOKEN;
-const webClient = new WebClient(slackBotToken);
 
 // Only capture raw body for Slack routes
 function rawBodySaver(req, res, buf, encoding) {
