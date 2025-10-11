@@ -14,10 +14,13 @@ const slackBotToken = process.env.SLACK_BOT_TOKEN;
 // Slack OAuth redirect route (best-practice)
 app.get('/slack/oauth_redirect', async (req, res) => {
   const { code, error } = req.query;
+  console.log('[OAUTH] Incoming /slack/oauth_redirect:', req.query);
   if (error) {
+    console.error('[OAUTH] Error param:', error);
     return res.status(400).send('Slack OAuth failed: ' + error);
   }
   if (!code) {
+    console.error('[OAUTH] Missing code param');
     return res.status(400).send('Missing code parameter from Slack.');
   }
   try {
@@ -35,14 +38,16 @@ app.get('/slack/oauth_redirect', async (req, res) => {
       },
     );
     const data = response.data;
+    console.log('[OAUTH] Slack response:', data);
     if (!data.ok) {
+      console.error('[OAUTH] Slack error:', data.error);
       return res
         .status(400)
         .send('Slack OAuth error: ' + (data.error || 'Unknown error'));
     }
     // Store tokens and team info in DB (best-practice: upsert)
     const db = await require('./db')();
-    await db.collection('workspace_tokens').updateOne(
+    const updateResult = await db.collection('workspace_tokens').updateOne(
       { team_id: data.team.id },
       {
         $set: {
@@ -56,11 +61,12 @@ app.get('/slack/oauth_redirect', async (req, res) => {
       },
       { upsert: true },
     );
+    console.log('[OAUTH] DB update result:', updateResult);
     return res.send(
       'Slack app installed successfully! You can now use the app in your workspace.',
     );
   } catch (err) {
-    console.error('Slack OAuth error:', err);
+    console.error('[OAUTH] Exception:', err);
     return res.status(500).send('Internal server error during Slack OAuth.');
   }
 });
@@ -162,8 +168,14 @@ async function slackHandler(req, res) {
         const user_id = payload.user_id;
         logWorkspace(workspace_id, 'Slack Workspace');
         logUser(user_id, workspace_id, 'Slack User');
+        console.log('[TASKS] Looking up token for team_id:', workspace_id);
         const botToken = await getTokenForTeam(workspace_id);
+        console.log('[TASKS] Found botToken:', botToken);
         if (!botToken) {
+          console.error(
+            '[TASKS] No bot token found for team_id:',
+            workspace_id,
+          );
           return res.json({
             text: ':x: App not properly installed for this workspace. Please reinstall.',
             response_type: 'ephemeral',
