@@ -27,19 +27,18 @@ module.exports = function (app) {
         user_id,
       );
     }
-    getTokenForTeam(workspace_id, async (err, botToken) => {
-      if (err || !botToken) {
+    try {
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
         if (logger)
           logger.error(
             '[support] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         else
           console.error(
             '[support] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         await client.chat.postEphemeral({
           channel: channel_id,
@@ -109,7 +108,15 @@ module.exports = function (app) {
           });
         }
       }
-    });
+    } catch (err) {
+      if (logger) logger.error('[support] Error getting bot token:', err);
+      else console.error('[support] Error getting bot token:', err);
+      await client.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        text: ':x: App not properly installed for this workspace. Please reinstall.',
+      });
+    }
   });
 
   // Feedback modal trigger

@@ -3,7 +3,7 @@ const { setSetting } = require('../models/settingsModel');
 
 const { getTokenForTeam } = require('../models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
-module.exports = function (app, db) {
+module.exports = function (app) {
   app.command(
     '/setdigestchannel',
     async ({ ack, command, body, client, logger }) => {
@@ -34,19 +34,18 @@ module.exports = function (app, db) {
         });
         return;
       }
-      getTokenForTeam(workspace_id, async (err, botToken) => {
-        if (err || !botToken) {
+      try {
+        const botToken = await getTokenForTeam(workspace_id);
+        if (!botToken) {
           if (logger)
             logger.error(
               '[setdigestchannel] No bot token found for workspace:',
               workspace_id,
-              err,
             );
           else
             console.error(
               '[setdigestchannel] No bot token found for workspace:',
               workspace_id,
-              err,
             );
           await client.chat.postEphemeral({
             channel: channel_id,
@@ -56,27 +55,26 @@ module.exports = function (app, db) {
           return;
         }
         const realClient = new WebClient(botToken);
-        setSetting(
-          'digest_channel',
-          digestChannelId,
-          workspace_id,
-          async (err) => {
-            if (err) {
-              await realClient.chat.postEphemeral({
-                channel: channel_id,
-                user: user_id,
-                text: ':x: Failed to set digest channel. Please try again.',
-              });
-            } else {
-              await realClient.chat.postEphemeral({
-                channel: channel_id,
-                user: user_id,
-                text: `:white_check_mark: Digest channel set to <#${digestChannelId}>!`,
-              });
-            }
-          },
-        );
-      });
+        await setSetting('digest_channel', digestChannelId, workspace_id);
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: `:white_check_mark: Digest channel set to <#${digestChannelId}>!`,
+        });
+      } catch (err) {
+        if (logger)
+          logger.error('[setdigestchannel] Error setting digest channel:', err);
+        else
+          console.error(
+            '[setdigestchannel] Error setting digest channel:',
+            err,
+          );
+        await client.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: ':x: Failed to set digest channel. Please try again.',
+        });
+      }
     },
   );
 };

@@ -1,7 +1,9 @@
 // Reminder button action handlers
 const { getTokenForTeam } = require('../models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
-module.exports = function (app, db) {
+const { ObjectId } = require('mongodb');
+const connectDB = require('../db');
+module.exports = function (app) {
   // Snooze 1 hour
   app.action('reminder_snooze_1h', async ({ ack, body, client, logger }) => {
     await ack();
@@ -21,23 +23,26 @@ module.exports = function (app, db) {
       );
     }
     const nextTime = new Date(Date.now() + 60 * 60 * 1000).toISOString();
-    db.run(
-      `UPDATE tasks SET next_reminder_time = ?, reminder_status = 'pending' WHERE id = ?`,
-      [nextTime, taskId],
-    );
-    getTokenForTeam(workspace_id, async (err, botToken) => {
-      if (err || !botToken) {
+    // MongoDB update
+    const dbConn = await connectDB();
+    await dbConn
+      .collection('tasks')
+      .updateOne(
+        { _id: new ObjectId(taskId), workspace_id },
+        { $set: { next_reminder_time: nextTime, reminder_status: 'pending' } },
+      );
+    try {
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
         if (logger)
           logger.error(
             '[reminder_snooze_1h] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         else
           console.error(
             '[reminder_snooze_1h] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         return;
       }
@@ -51,9 +56,12 @@ module.exports = function (app, db) {
         if (logger)
           logger.error('[reminder_snooze_1h] Slack API error:', apiErr);
         else console.error('[reminder_snooze_1h] Slack API error:', apiErr);
-        // Optionally handle channel/user errors here
       }
-    });
+    } catch (err) {
+      if (logger)
+        logger.error('[reminder_snooze_1h] Error getting bot token:', err);
+      else console.error('[reminder_snooze_1h] Error getting bot token:', err);
+    }
   });
 
   // Snooze 1 day
@@ -75,23 +83,26 @@ module.exports = function (app, db) {
       );
     }
     const nextTime = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-    db.run(
-      `UPDATE tasks SET next_reminder_time = ?, reminder_status = 'pending' WHERE id = ?`,
-      [nextTime, taskId],
-    );
-    getTokenForTeam(workspace_id, async (err, botToken) => {
-      if (err || !botToken) {
+    // MongoDB update
+    const dbConn = await connectDB();
+    await dbConn
+      .collection('tasks')
+      .updateOne(
+        { _id: new ObjectId(taskId), workspace_id },
+        { $set: { next_reminder_time: nextTime, reminder_status: 'pending' } },
+      );
+    try {
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
         if (logger)
           logger.error(
             '[reminder_snooze_1d] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         else
           console.error(
             '[reminder_snooze_1d] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         return;
       }
@@ -106,7 +117,11 @@ module.exports = function (app, db) {
           logger.error('[reminder_snooze_1d] Slack API error:', apiErr);
         else console.error('[reminder_snooze_1d] Slack API error:', apiErr);
       }
-    });
+    } catch (err) {
+      if (logger)
+        logger.error('[reminder_snooze_1d] Error getting bot token:', err);
+      else console.error('[reminder_snooze_1d] Error getting bot token:', err);
+    }
   });
 
   // Reschedule (prompt user to use /task-edit)
@@ -127,19 +142,18 @@ module.exports = function (app, db) {
         user_id,
       );
     }
-    getTokenForTeam(workspace_id, async (err, botToken) => {
-      if (err || !botToken) {
+    try {
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
         if (logger)
           logger.error(
             '[reminder_reschedule] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         else
           console.error(
             '[reminder_reschedule] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         return;
       }
@@ -154,6 +168,10 @@ module.exports = function (app, db) {
           logger.error('[reminder_reschedule] Slack API error:', apiErr);
         else console.error('[reminder_reschedule] Slack API error:', apiErr);
       }
-    });
+    } catch (err) {
+      if (logger)
+        logger.error('[reminder_reschedule] Error getting bot token:', err);
+      else console.error('[reminder_reschedule] Error getting bot token:', err);
+    }
   });
 };

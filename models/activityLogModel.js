@@ -1,38 +1,27 @@
 // models/activityLogModel.js
-const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("./tasks.db");
+const connectDB = require('../db');
 
-function initActivityLogTable() {
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS activity_log (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id TEXT,
-      action TEXT,
-      details TEXT,
-      timestamp TEXT
-    )`);
+async function logActivity(userId, action, details) {
+  const db = await connectDB();
+  await db.collection('activity_log').insertOne({
+    user_id: userId,
+    action,
+    details,
+    timestamp: new Date().toISOString(),
   });
 }
 
-function logActivity(userId, action, details, callback) {
-  db.run(
-    `INSERT INTO activity_log (user_id, action, details, timestamp) VALUES (?, ?, ?, datetime('now'))`,
-    [userId, action, details],
-    callback
-  );
-}
-
-function getRecentActivity(limit, callback) {
-  db.all(
-    `SELECT * FROM activity_log ORDER BY timestamp DESC LIMIT ?`,
-    [limit],
-    callback
-  );
+async function getRecentActivity(limit) {
+  const db = await connectDB();
+  return db
+    .collection('activity_log')
+    .find({})
+    .sort({ timestamp: -1 })
+    .limit(limit)
+    .toArray();
 }
 
 module.exports = {
-  db,
-  initActivityLogTable,
   logActivity,
   getRecentActivity,
 };

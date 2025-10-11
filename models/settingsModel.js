@@ -1,49 +1,20 @@
 // models/settingsModel.js
-const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("./tasks.db");
+const connectDB = require('../db');
 
-function initSettingsTable() {
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS settings (
-      key TEXT,
-      value TEXT,
-      workspace_id TEXT NOT NULL,
-      PRIMARY KEY (key, workspace_id)
-    )`);
-    // Set defaults if not present
-    db.run(
-      `INSERT OR IGNORE INTO settings (key, value) VALUES ('digest_channel', '')`
-    );
-    db.run(
-      `INSERT OR IGNORE INTO settings (key, value) VALUES ('digest_time', '0 9 * * *')`
-    ); // 9am
-    db.run(
-      `INSERT OR IGNORE INTO settings (key, value) VALUES ('reminder_time', '0 8 * * *')`
-    ); // 8am
-  });
+async function getSetting(key, workspace_id) {
+  const db = await connectDB();
+  const row = await db.collection('settings').findOne({ key, workspace_id });
+  return row ? row.value : null;
 }
 
-function getSetting(key, workspace_id, callback) {
-  db.get(
-    `SELECT value FROM settings WHERE key = ? AND workspace_id = ?`,
-    [key, workspace_id],
-    (err, row) => {
-      callback(err, row ? row.value : null);
-    }
-  );
-}
-
-function setSetting(key, value, workspace_id, callback) {
-  db.run(
-    `INSERT OR REPLACE INTO settings (key, value, workspace_id) VALUES (?, ?, ?)`,
-    [key, value, workspace_id],
-    callback
-  );
+async function setSetting(key, value, workspace_id) {
+  const db = await connectDB();
+  await db
+    .collection('settings')
+    .updateOne({ key, workspace_id }, { $set: { value } }, { upsert: true });
 }
 
 module.exports = {
-  db,
-  initSettingsTable,
   getSetting,
   setSetting,
 };

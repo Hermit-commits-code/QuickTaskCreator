@@ -1,41 +1,30 @@
 // models/notificationPreferencesModel.js
-const sqlite3 = require("sqlite3").verbose();
-const db = new sqlite3.Database("./tasks.db");
+const connectDB = require('../db');
 
-function initNotificationPreferencesTable() {
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS notification_preferences (
-      user_id TEXT PRIMARY KEY,
-      mute_all INTEGER DEFAULT 0,
-      digest_only INTEGER DEFAULT 0,
-      custom_reminder_time TEXT DEFAULT NULL
-    )`);
-  });
-}
-
-function setPreferences(
+async function setPreferences(
   userId,
   { muteAll, digestOnly, customReminderTime },
-  callback
 ) {
-  db.run(
-    `INSERT OR REPLACE INTO notification_preferences (user_id, mute_all, digest_only, custom_reminder_time) VALUES (?, ?, ?, ?)`,
-    [userId, muteAll ? 1 : 0, digestOnly ? 1 : 0, customReminderTime || null],
-    callback
+  const db = await connectDB();
+  await db.collection('notification_preferences').updateOne(
+    { user_id: userId },
+    {
+      $set: {
+        mute_all: muteAll ? 1 : 0,
+        digest_only: digestOnly ? 1 : 0,
+        custom_reminder_time: customReminderTime || null,
+      },
+    },
+    { upsert: true },
   );
 }
 
-function getPreferences(userId, callback) {
-  db.get(
-    `SELECT * FROM notification_preferences WHERE user_id = ?`,
-    [userId],
-    callback
-  );
+async function getPreferences(userId) {
+  const db = await connectDB();
+  return db.collection('notification_preferences').findOne({ user_id: userId });
 }
 
 module.exports = {
-  db,
-  initNotificationPreferencesTable,
   setPreferences,
   getPreferences,
 };

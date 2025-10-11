@@ -1,47 +1,31 @@
 // models/adminModel.js
-const sqlite3 = require("sqlite3").verbose();
+const connectDB = require('../db');
 
-const db = new sqlite3.Database("./tasks.db");
-
-function initAdminTable() {
-  db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS admins (
-      user_id TEXT,
-      workspace_id TEXT NOT NULL,
-      PRIMARY KEY (user_id, workspace_id)
-    )`);
-  });
+async function addAdmin(userId, workspace_id) {
+  const db = await connectDB();
+  await db
+    .collection('admins')
+    .updateOne(
+      { user_id: userId, workspace_id },
+      { $setOnInsert: { user_id: userId, workspace_id } },
+      { upsert: true },
+    );
 }
 
-function addAdmin(userId, workspace_id, callback) {
-  db.run(
-    `INSERT OR IGNORE INTO admins (user_id, workspace_id) VALUES (?, ?)`,
-    [userId, workspace_id],
-    callback
-  );
+async function removeAdmin(userId, workspace_id) {
+  const db = await connectDB();
+  await db.collection('admins').deleteOne({ user_id: userId, workspace_id });
 }
 
-function removeAdmin(userId, workspace_id, callback) {
-  db.run(
-    `DELETE FROM admins WHERE user_id = ? AND workspace_id = ?`,
-    [userId, workspace_id],
-    callback
-  );
-}
-
-function isAdmin(userId, workspace_id, callback) {
-  db.get(
-    `SELECT * FROM admins WHERE user_id = ? AND workspace_id = ?`,
-    [userId, workspace_id],
-    (err, row) => {
-      callback(err, !!row);
-    }
-  );
+async function isAdmin(userId, workspace_id) {
+  const db = await connectDB();
+  const admin = await db
+    .collection('admins')
+    .findOne({ user_id: userId, workspace_id });
+  return !!admin;
 }
 
 module.exports = {
-  db,
-  initAdminTable,
   addAdmin,
   removeAdmin,
   isAdmin,

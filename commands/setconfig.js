@@ -1,7 +1,7 @@
 // /setconfig command handler for notification channel and schedule settings
 const { getTokenForTeam } = require('../models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
-module.exports = function (app, db) {
+module.exports = function (app) {
   const { setSetting, getSetting } = require('../models/settingsModel');
   app.command('/setconfig', async ({ ack, body, client, logger }) => {
     await ack();
@@ -22,19 +22,18 @@ module.exports = function (app, db) {
         user_id,
       );
     }
-    getTokenForTeam(workspace_id, async (err, botToken) => {
-      if (err || !botToken) {
+    try {
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
         if (logger)
           logger.error(
             '[setconfig] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         else
           console.error(
             '[setconfig] No bot token found for workspace:',
             workspace_id,
-            err,
           );
         await client.chat.postEphemeral({
           channel: channel_id,
@@ -120,22 +119,31 @@ module.exports = function (app, db) {
           });
         }
       }
-    });
+    } catch (err) {
+      if (logger) logger.error('[setconfig] Error getting bot token:', err);
+      else console.error('[setconfig] Error getting bot token:', err);
+      await client.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        text: ':x: App not properly installed for this workspace. Please reinstall.',
+      });
+    }
   });
 
   app.view('setconfig_modal_submit', async ({ ack, body, view, client }) => {
     await ack();
+    const workspace_id = body.team.id || body.team_id;
     const digestChannel =
       view.state.values.digest_channel_block.digest_channel_input.value;
     const digestTime =
       view.state.values.digest_time_block.digest_time_input.value;
     const reminderTime =
       view.state.values.reminder_time_block.reminder_time_input.value;
-    setSetting('digest_channel', digestChannel);
-    setSetting('digest_time', digestTime);
-    setSetting('reminder_time', reminderTime);
+    await setSetting('digest_channel', digestChannel, workspace_id);
+    await setSetting('digest_time', digestTime, workspace_id);
+    await setSetting('reminder_time', reminderTime, workspace_id);
     const { logActivity } = require('../models/activityLogModel');
-    logActivity(
+    await logActivity(
       body.user.id,
       'update_config',
       `Digest Channel: ${digestChannel}, Digest Time: ${digestTime}, Reminder Time: ${reminderTime}`,
