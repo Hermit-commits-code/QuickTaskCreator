@@ -12,7 +12,6 @@ const slackSigningSecret = process.env.SLACK_SIGNING_SECRET;
 const slackBotToken = process.env.SLACK_BOT_TOKEN;
 const webClient = new WebClient(slackBotToken);
 
-
 // Only capture raw body for Slack routes
 function rawBodySaver(req, res, buf, encoding) {
   if (buf && buf.length) {
@@ -25,7 +24,7 @@ app.post(
   bodyParser.json({ verify: rawBodySaver }),
   bodyParser.urlencoded({ extended: true, verify: rawBodySaver }),
   verifySlackSignature(slackSigningSecret),
-  slackHandler
+  slackHandler,
 );
 
 // Main Slack events endpoint
@@ -62,7 +61,7 @@ async function slackHandler(req, res) {
   // Slash command (form-encoded)
   if (payload.command) {
     if (payload.command === '/task-delete') {
-      // Migrate: fetch open tasks and open delete modal
+      // ...existing code for /task-delete...
       try {
         const workspace_id = payload.team_id;
         const channel_id = payload.channel_id;
@@ -98,6 +97,102 @@ async function slackHandler(req, res) {
           response_type: 'ephemeral',
           text: ':x: Internal error. Please try again later.',
         });
+      }
+    } else if (payload.command === '/tasks') {
+      // Migrated /tasks command logic
+      try {
+        const { logWorkspace, logUser } = require('./models/analyticsModel');
+        const { getTokenForTeam } = require('./models/workspaceTokensModel');
+        const { WebClient } = require('@slack/web-api');
+        const workspace_id = payload.team_id;
+        const channel_id = payload.channel_id;
+        const user_id = payload.user_id;
+        logWorkspace(workspace_id, 'Slack Workspace');
+        logUser(user_id, workspace_id, 'Slack User');
+        const botToken = await getTokenForTeam(workspace_id);
+        if (!botToken) {
+          return res.json({
+            text: ':x: App not properly installed for this workspace. Please reinstall.',
+            response_type: 'ephemeral',
+          });
+        }
+        const realClient = new WebClient(botToken);
+        const db = await require('./db')();
+        const rows = await db
+          .collection('tasks')
+          .find({ status: 'open', workspace_id })
+          .toArray();
+        if (rows.length === 0) {
+          return res.json({ text: 'No open tasks.', response_type: 'ephemeral' });
+        }
+        const blocks = rows.map((t) => {
+          let assigned = t.assigned_user
+            ? ` _(Assigned to: <@${t.assigned_user}> )_`
+            : '';
+          let due = t.due_date ? ` _(Due: ${t.due_date})_` : '';
+          let category = t.category ? ` _(Category: ${t.category})_` : '';
+          let tags = t.tags ? ` _(Tags: ${t.tags})_` : '';
+          let priority = t.priority ? ` _(Priority: ${t.priority})_` : '';
+          return {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*${t.description}*${assigned}${due}${category}${tags}${priority}`,
+            },
+            accessory: {
+              type: 'button',
+              text: { type: 'plain_text', text: 'Complete' },
+              action_id: `complete_task_${t._id}`,
+              value: String(t._id),
+            },
+          };
+        });
+        blocks.push({
+          type: 'actions',
+          elements: [
+            {
+              type: 'button',
+              text: { type: 'plain_text', text: 'Edit' },
+              action_id: 'edit_task',
+              value: 'edit',
+            },
+            {
+              type: 'button',
+              text: { type: 'plain_text', text: 'Delete' },
+              action_id: 'delete_task',
+              value: 'delete',
+            },
+            {
+              type: 'button',
+              text: { type: 'plain_text', text: 'Batch Actions' },
+              action_id: 'batch_task_actions',
+              value: 'batch',
+            },
+          ],
+        });
+        await realClient.chat.postMessage({
+          channel: channel_id,
+          blocks,
+          text: 'Open Tasks',
+        });
+        return res.status(200).send();
+      } catch (error) {
+        if (error.data && error.data.error === 'channel_not_found') {
+          return res.json({
+            text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+            response_type: 'ephemeral',
+          });
+        } else if (error.data && error.data.error === 'user_not_found') {
+          return res.json({
+            text: ':x: User not found. Please check the user ID.',
+            response_type: 'ephemeral',
+          });
+        } else {
+          return res.json({
+            text: ':x: An unexpected error occurred. Please contact support.',
+            response_type: 'ephemeral',
+          });
+        }
       }
     }
     // Add more slash commands as needed
