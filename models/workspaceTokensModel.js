@@ -17,7 +17,7 @@ async function getTokenForTeam(teamId) {
   const row = await db
     .collection('workspace_tokens')
     .findOne({ team_id: teamId });
-  return row ? row.bot_token : null;
+  return row ? row.access_token : null;
 }
 
 module.exports = {
