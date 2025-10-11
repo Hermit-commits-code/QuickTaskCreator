@@ -119,6 +119,16 @@ async function slackHandler(req, res) {
 
   // Slash command (form-encoded)
   if (payload.command) {
+    // Supported slash commands
+    const supportedCommands = [
+      '/tasks', '/task', '/task-delete', '/task-edit', '/task-complete',
+      '/add-admin', '/removeadmin', '/listadmins', '/auditlog', '/report',
+      '/notifyprefs', '/setdigestchannel', '/delete-workspace-data', '/support', '/setconfig', '/help'
+    ];
+    if (!supportedCommands.includes(payload.command)) {
+      return res.json({ text: 'Unknown slash command.' });
+    }
+    // TODO: Migrate and implement each command's logic here
     if (payload.command === '/task-delete') {
       // ...existing code for /task-delete...
       try {
