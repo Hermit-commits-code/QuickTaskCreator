@@ -118,7 +118,140 @@ async function slackHandler(req, res) {
   }
 
   // Slash command (form-encoded)
-  if (payload.command) {
+  if (payload.command === '/task') {
+    // Open task creation modal
+    try {
+      const { logWorkspace, logUser } = require('./models/analyticsModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const { getTaskModal } = require('./blockKit/taskModal');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      logWorkspace(workspace_id, 'Slack Workspace');
+      logUser(user_id, workspace_id, 'Slack User');
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: getTaskModal(channel_id),
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/task error:', err);
+      return res.json({
+        text: ':x: Internal error. Please try again later.',
+        response_type: 'ephemeral',
+      });
+    }
+  } else if (payload.command === '/tasks') {
+    // List open tasks in the channel
+    try {
+      const { logWorkspace, logUser } = require('./models/analyticsModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      logWorkspace(workspace_id, 'Slack Workspace');
+      logUser(user_id, workspace_id, 'Slack User');
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      const db = await require('./db')();
+      const rows = await db
+        .collection('tasks')
+        .find({ status: 'open', workspace_id })
+        .toArray();
+      if (rows.length === 0) {
+        return res.json({
+          text: 'No open tasks.',
+          response_type: 'ephemeral',
+        });
+      }
+      const blocks = rows.map((t) => {
+        let assigned = t.assigned_user
+          ? ` _(Assigned to: <@${t.assigned_user}> )_`
+          : '';
+        let due = t.due_date ? ` _(Due: ${t.due_date})_` : '';
+        let category = t.category ? ` _(Category: ${t.category})_` : '';
+        let tags = t.tags ? ` _(Tags: ${t.tags})_` : '';
+        let priority = t.priority ? ` _(Priority: ${t.priority})_` : '';
+        return {
+          type: 'section',
+          text: {
+            type: 'mrkdwn',
+            text: `*${t.description}*${assigned}${due}${category}${tags}${priority}`,
+          },
+        };
+      });
+      await realClient.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        blocks,
+        text: 'Open Tasks',
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/tasks error:', err);
+      return res.json({
+        text: ':x: Internal error. Please try again later.',
+        response_type: 'ephemeral',
+      });
+    }
+  } else if (payload.command === '/listadmins') {
+    // List all admins in a modal
+    try {
+      const { getListAdminsModal } = require('./blockKit/listAdminsModal');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const db = await require('./db')();
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const admins = await db
+        .collection('admins')
+        .find({ workspace_id })
+        .toArray();
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: getListAdminsModal(admins),
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/listadmins error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: 'Error fetching admins or opening modal.',
+        });
+      }
+      return res.status(200).send();
+    }
   } else if (payload.command === '/help') {
     // Migrate /help: show help and command info
     try {
