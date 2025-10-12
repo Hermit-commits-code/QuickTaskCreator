@@ -119,17 +119,1012 @@ async function slackHandler(req, res) {
 
   // Slash command (form-encoded)
   if (payload.command) {
+  } else if (payload.command === '/help') {
+    // Migrate /help: show help and command info
+    try {
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      await realClient.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        blocks: [
+          {
+            type: 'header',
+            text: { type: 'plain_text', text: 'Quick Task Creator Help' },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: 'Create, assign, and manage tasks directly in Slack. Fast, reliable, and frictionless.',
+            },
+          },
+          { type: 'divider' },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '*Commands:*\n• `/task` – Create a new task\n• `/tasks` – List open tasks\n• `/task-edit` – Edit a task\n• `/task-complete` – Complete a task\n• `/task-delete` – Delete a task\n• `/add-admin` – Add admin\n• `/removeadmin` – Remove admin\n• `/setdigestchannel` – Set digest channel\n• `/setconfig` – Configure workspace\n• `/report` – View analytics\n• `/listadmins` – List admins\n• `/notifyprefs` – Notification preferences\n• `/help` – Show help\n• `/support` – Contact support',
+            },
+          },
+          {
+            type: 'actions',
+            elements: [
+              {
+                type: 'button',
+                text: { type: 'plain_text', text: 'Contact Support' },
+                value: 'support',
+                action_id: 'open_support',
+              },
+            ],
+          },
+          { type: 'divider' },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: 'See documentation or GitHub Issues for more help.',
+              },
+            ],
+          },
+        ],
+        text: 'Quick Task Creator Help',
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/help error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: ':x: An unexpected error occurred. Please contact support.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/setconfig') {
+    // Migrate /setconfig: open workspace settings modal and update config
+    try {
+      const { setSetting } = require('./models/settingsModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: {
+          type: 'modal',
+          callback_id: 'setconfig_modal_submit',
+          title: { type: 'plain_text', text: 'Workspace Settings' },
+          submit: { type: 'plain_text', text: 'Save' },
+          close: { type: 'plain_text', text: 'Cancel' },
+          blocks: [
+            {
+              type: 'input',
+              block_id: 'digest_channel_block',
+              element: {
+                type: 'plain_text_input',
+                action_id: 'digest_channel_input',
+                placeholder: {
+                  type: 'plain_text',
+                  text: 'Channel ID for daily digest',
+                },
+              },
+              label: { type: 'plain_text', text: 'Digest Channel ID' },
+            },
+            {
+              type: 'input',
+              block_id: 'digest_time_block',
+              element: {
+                type: 'plain_text_input',
+                action_id: 'digest_time_input',
+                placeholder: {
+                  type: 'plain_text',
+                  text: 'Cron format (e.g. 0 9 * * *)',
+                },
+              },
+              label: { type: 'plain_text', text: 'Digest Time (cron)' },
+            },
+            {
+              type: 'input',
+              block_id: 'reminder_time_block',
+              element: {
+                type: 'plain_text_input',
+                action_id: 'reminder_time_input',
+                placeholder: {
+                  type: 'plain_text',
+                  text: 'Cron format (e.g. 0 8 * * *)',
+                },
+              },
+              label: { type: 'plain_text', text: 'Reminder Time (cron)' },
+            },
+          ],
+        },
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/setconfig error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: ':x: An unexpected error occurred. Please contact support.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/support') {
+    // Migrate /support: show support and feedback info
+    try {
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      await realClient.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        blocks: [
+          {
+            type: 'header',
+            text: { type: 'plain_text', text: 'Support & Feedback' },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: 'Need help or want to share feedback?',
+            },
+          },
+          { type: 'divider' },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: '• *Report a Bug*: <https://github.com/Hermit-commits-code/QuickTaskCreator/issues|Open a GitHub Issue>\n• *Submit Feedback*: Send feedback to <mailto:hotcupofjoe2013@gmail.com|support@quicktaskcreator.com>.',
+            },
+          },
+          { type: 'divider' },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: '*Privacy:* No personal or message content is stored. Expected response time: 1-2 business days.',
+              },
+            ],
+          },
+        ],
+        text: 'Support & Feedback',
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/support error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: ':x: An unexpected error occurred. Please contact support.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/delete-workspace-data') {
+    // Migrate /delete-workspace-data: confirm and delete all workspace data
+    try {
+      const { isAdmin } = require('./models/adminModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const connectDB = require('./db');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const isAdminUser = await isAdmin(user_id, workspace_id);
+      if (!isAdminUser) {
+        const botToken = await getTokenForTeam(workspace_id);
+        if (botToken) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':no_entry: Only workspace admins can delete all data.',
+          });
+        }
+        return res.status(200).send();
+      }
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: {
+          type: 'modal',
+          callback_id: 'delete_workspace_data_confirm',
+          title: { type: 'plain_text', text: 'Confirm Data Deletion' },
+          blocks: [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: ':warning: This will permanently delete ALL data for this workspace, including tasks, feedback, bug reports, settings, and admin records. This action cannot be undone.\n\nAre you sure you want to proceed?',
+              },
+            },
+            {
+              type: 'input',
+              block_id: 'confirm_block',
+              label: { type: 'plain_text', text: 'Type DELETE to confirm' },
+              element: {
+                type: 'plain_text_input',
+                action_id: 'confirm_input',
+                placeholder: { type: 'plain_text', text: 'DELETE' },
+              },
+            },
+          ],
+          submit: { type: 'plain_text', text: 'Delete Data' },
+          close: { type: 'plain_text', text: 'Cancel' },
+          private_metadata: JSON.stringify({ channel_id }),
+        },
+      });
+      return res.status(200).send();
+    } catch (error) {
+      console.error('/delete-workspace-data error:', error);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: ':x: Internal error. Please try again later.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/setdigestchannel') {
+    // Migrate /setdigestchannel: set the digest channel for reminders
+    try {
+      const { setSetting } = require('./models/settingsModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const digestChannelId = (payload.text || '').trim();
+      if (!digestChannelId || !digestChannelId.startsWith('C')) {
+        const botToken = await getTokenForTeam(workspace_id);
+        if (botToken) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':warning: Please provide a valid Slack channel ID (e.g. C12345678).',
+          });
+        }
+        return res.status(200).send();
+      }
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      await setSetting('digest_channel', digestChannelId, workspace_id);
+      await realClient.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        text: `:white_check_mark: Digest channel set to <#${digestChannelId}>!`,
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/setdigestchannel error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: ':x: Failed to set digest channel. Please try again.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/notifyprefs') {
+    // Migrate /notifyprefs: open notification preferences modal
+    try {
+      const {
+        setPreferences,
+        getPreferences,
+      } = require('./models/notificationPreferencesModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const muteOptions = [
+        {
+          text: { type: 'plain_text', text: 'Mute all notifications' },
+          value: 'mute_all',
+        },
+      ];
+      const digestOptions = [
+        {
+          text: {
+            type: 'plain_text',
+            text: 'Receive only digests (no reminders)',
+          },
+          value: 'digest_only',
+        },
+      ];
+      const userId = payload.user_id;
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      const prefs = await getPreferences(userId);
+      const muteBlock = {
+        type: 'input',
+        block_id: 'mute_block',
+        element: {
+          type: 'checkboxes',
+          action_id: 'mute_input',
+          options: muteOptions,
+          ...(prefs && prefs.mute_all === 1
+            ? { initial_options: [muteOptions[0]] }
+            : {}),
+        },
+        label: { type: 'plain_text', text: 'Mute' },
+      };
+      const digestBlock = {
+        type: 'input',
+        block_id: 'digest_block',
+        element: {
+          type: 'checkboxes',
+          action_id: 'digest_input',
+          options: digestOptions,
+          ...(prefs && prefs.digest_only === 1
+            ? { initial_options: [digestOptions[0]] }
+            : {}),
+        },
+        label: { type: 'plain_text', text: 'Digest Only' },
+      };
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: {
+          type: 'modal',
+          callback_id: 'notifyprefs_modal_submit',
+          private_metadata: JSON.stringify({ channel_id }),
+          title: { type: 'plain_text', text: 'Notification Preferences' },
+          submit: { type: 'plain_text', text: 'Save' },
+          close: { type: 'plain_text', text: 'Cancel' },
+          blocks: [
+            muteBlock,
+            digestBlock,
+            {
+              type: 'input',
+              block_id: 'reminder_time_block',
+              element: {
+                type: 'plain_text_input',
+                action_id: 'reminder_time_input',
+                placeholder: {
+                  type: 'plain_text',
+                  text: 'e.g. 09:00, 17:30 (24h format)',
+                },
+                initial_value:
+                  prefs && prefs.custom_reminder_time
+                    ? prefs.custom_reminder_time
+                    : '',
+              },
+              label: { type: 'plain_text', text: 'Custom Reminder Time' },
+              optional: true,
+            },
+          ],
+        },
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/notifyprefs error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: ':x: Error opening notification preferences modal.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/report') {
+    // Migrate /report: show workspace analytics and stats
+    try {
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const { getTaskStats } = require('./models/reportModel');
+      const workspace_id = payload.team_id || (payload.team && payload.team.id);
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      const stats = await getTaskStats(workspace_id);
+      const completionRate =
+        stats.total > 0
+          ? ((stats.completed / stats.total) * 100).toFixed(1)
+          : '0';
+      // Get recent activity (last 7 days)
+      const db = await require('./db')();
+      const tasks = db.collection('tasks');
+      const now = new Date();
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      const recentRows = await tasks
+        .aggregate([
+          {
+            $match: {
+              workspace_id,
+              created_at: { $gte: sevenDaysAgo.toISOString() },
+            },
+          },
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+        ])
+        .toArray();
+      let recentStats = { created: 0, completed: 0 };
+      if (recentRows && recentRows.length > 0) {
+        recentRows.forEach((row) => {
+          if (row._id === 'completed') recentStats.completed = row.count;
+          if (row._id === 'open') recentStats.created = row.count;
+        });
+      }
+      // Build analytics blocks
+      function buildAnalyticsBlocks(stats, recentStats, completionRate) {
+        return [
+          {
+            type: 'header',
+            text: { type: 'plain_text', text: 'QuickTaskCreator Task Report' },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Summary:*\n• Total Tasks: ${stats.total}\n• Completed: ${stats.completed}\n• Open: ${stats.open}\n• Overdue: ${stats.overdue}\n• Completion Rate: ${completionRate}%`,
+            },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*Recent Activity (last 7 days):*\n• Created: ${recentStats.created}\n• Completed: ${recentStats.completed}`,
+            },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*By Category:*\n${stats.byCategory
+                .map((c) => `• ${c.category || 'Uncategorized'}: ${c.count}`)
+                .join('\n')}`,
+            },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*By Priority:*\n${stats.byPriority
+                .map((p) => `• ${p.priority || 'None'}: ${p.count}`)
+                .join('\n')}`,
+            },
+          },
+          {
+            type: 'section',
+            text: {
+              type: 'mrkdwn',
+              text: `*By User:*\n${stats.byUser
+                .map(
+                  (u) => `• <@${u.assigned_user || 'Unassigned'}>: ${u.count}`,
+                )
+                .join('\n')}`,
+            },
+          },
+          {
+            type: 'context',
+            elements: [
+              {
+                type: 'mrkdwn',
+                text: '_QuickTaskCreator © 2025 | All rights reserved._',
+              },
+            ],
+          },
+        ];
+      }
+      const blocks = buildAnalyticsBlocks(stats, recentStats, completionRate);
+      await realClient.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        blocks,
+        text: 'QuickTaskCreator Analytics',
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/report error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: ':x: Error generating report.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/auditlog') {
+    // Migrate /auditlog: show recent activity log to admins only
+    try {
+      const { getRecentActivity } = require('./models/activityLogModel');
+      const { isAdmin } = require('./models/adminModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      const isAdminUser = await require('./models/adminModel').isAdmin(
+        user_id,
+        workspace_id,
+      );
+      if (!isAdminUser) {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: 'You do not have permission to view the audit log.',
+        });
+        return res.status(200).send();
+      }
+      const rows = await getRecentActivity(20);
+      if (!rows.length) {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: 'No activity log entries found.',
+        });
+        return res.status(200).send();
+      }
+      const blocks = rows.map((entry) => ({
+        type: 'section',
+        text: {
+          type: 'mrkdwn',
+          text: `*${entry.timestamp}* - <@${entry.user_id}>: *${entry.action}*\n${entry.details}`,
+        },
+      }));
+      await realClient.chat.postEphemeral({
+        channel: channel_id,
+        user: user_id,
+        text: 'Recent activity log:',
+        blocks,
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/auditlog error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: 'Error fetching activity log.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/listadmins') {
+    // Migrate /listadmins: open modal listing all admins
+    try {
+      const { getListAdminsModal } = require('./blockKit/listAdminsModal');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      const db = await require('./db')();
+      const admins = await db
+        .collection('admins')
+        .find({ workspace_id })
+        .toArray();
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: getListAdminsModal(admins),
+      });
+      return res.status(200).send();
+    } catch (err) {
+      console.error('/listadmins error:', err);
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const botToken = await getTokenForTeam(payload.team_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postEphemeral({
+          channel: payload.channel_id,
+          user: payload.user_id,
+          text: 'Error fetching admins or opening modal.',
+        });
+      }
+      return res.status(200).send();
+    }
+  } else if (payload.command === '/removeadmin') {
+    // Migrate /removeadmin: open remove admin modal, only allow current admins
+    try {
+      const { getRemoveAdminModal } = require('./blockKit/removeAdminModal');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { isAdmin } = require('./models/adminModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      // Only allow current admins to remove other admins
+      const userIsAdmin = await isAdmin(user_id, workspace_id);
+      if (!userIsAdmin) {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: '❗ Only admins can remove other admins.',
+        });
+        return res.status(200).send();
+      }
+      // Get all admins for dropdown, filter out current user
+      const db = await require('./db')();
+      const admins = await db
+        .collection('admins')
+        .find({ workspace_id })
+        .toArray();
+      if (!admins.length) {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: 'No admins found.',
+        });
+        return res.status(200).send();
+      }
+      const filteredAdmins = admins.filter((a) => a.user_id !== user_id);
+      if (!filteredAdmins.length) {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: 'No other admins to remove.',
+        });
+        return res.status(200).send();
+      }
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: getRemoveAdminModal(filteredAdmins),
+      });
+      return res.status(200).send();
+    } catch (error) {
+      console.error('/removeadmin error:', error);
+      return res.json({
+        text: ':x: Internal error. Please try again later.',
+        response_type: 'ephemeral',
+      });
+    }
+  } else if (payload.command === '/add-admin') {
+    // Migrate /add-admin: open add admin modal, handle first admin logic
+    try {
+      const { getAddAdminModal } = require('./blockKit/addAdminModal');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { addAdmin, isAdmin } = require('./models/adminModel');
+      const { logActivity } = require('./models/activityLogModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      // Check if any admin exists for this workspace
+      const isFirstAdmin = !(await isAdmin(user_id, workspace_id));
+      if (isFirstAdmin) {
+        // Add the user as the first admin
+        await addAdmin(user_id, workspace_id);
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: ':white_check_mark: You are now the workspace admin! You can add other admins.',
+        });
+        try {
+          await realClient.views.open({
+            trigger_id: payload.trigger_id,
+            view: {
+              ...getAddAdminModal(),
+              private_metadata: JSON.stringify({ channel_id }),
+            },
+          });
+        } catch (apiErr) {
+          console.error('[add-admin] Slack API error (modal open):', apiErr);
+          if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+            await realClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+            });
+          } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
+            await realClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: ':x: User not found. Please check the user ID.',
+            });
+          } else {
+            await realClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: ':x: An unexpected error occurred. Please contact support.',
+            });
+          }
+        }
+      } else {
+        // Only admins can add other admins
+        const isUserAdmin = await isAdmin(user_id, workspace_id);
+        if (!isUserAdmin) {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: '\u2757 Only admins can add other admins.',
+          });
+          return res.status(200).send();
+        }
+        try {
+          await realClient.views.open({
+            trigger_id: payload.trigger_id,
+            view: {
+              ...getAddAdminModal(),
+              private_metadata: JSON.stringify({ channel_id }),
+            },
+          });
+        } catch (apiErr) {
+          console.error('[add-admin] Slack API error (modal open):', apiErr);
+          if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+            await realClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+            });
+          } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
+            await realClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: ':x: User not found. Please check the user ID.',
+            });
+          } else {
+            await realClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: ':x: An unexpected error occurred. Please contact support.',
+            });
+          }
+        }
+      }
+      return res.status(200).send();
+    } catch (error) {
+      console.error('/add-admin error:', error);
+      return res.json({
+        text: ':x: Internal error. Please try again later.',
+        response_type: 'ephemeral',
+      });
+    }
+  } else if (payload.command === '/task-complete') {
+    // Migrate /task-complete: open complete modal for user's open tasks
+    try {
+      const { logWorkspace, logUser } = require('./models/analyticsModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const { getCompleteTaskModal } = require('./blockKit/completeTaskModal');
+      const { getOpenTasks } = require('./models/taskModel');
+      const workspace_id = payload.team_id;
+      const channel_id = payload.channel_id;
+      const user_id = payload.user_id;
+      logWorkspace(workspace_id, 'Slack Workspace');
+      logUser(user_id, workspace_id, 'Slack User');
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        return res.json({
+          text: ':x: App not properly installed for this workspace. Please reinstall.',
+          response_type: 'ephemeral',
+        });
+      }
+      const realClient = new WebClient(botToken);
+      const rows = await getOpenTasks(workspace_id);
+      if (!rows || rows.length === 0) {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: 'No open tasks to complete.',
+        });
+        return res.status(200).send();
+      }
+      await realClient.views.open({
+        trigger_id: payload.trigger_id,
+        view: {
+          ...getCompleteTaskModal(rows),
+          private_metadata: JSON.stringify({ channel_id }),
+        },
+      });
+      return res.status(200).send();
+    } catch (apiErr) {
+      console.error('[task-complete] Slack API error (modal open):', apiErr);
+      if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+        return res.json({
+          text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+          response_type: 'ephemeral',
+        });
+      } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
+        return res.json({
+          text: ':x: User not found. Please check the user ID.',
+          response_type: 'ephemeral',
+        });
+      } else {
+        return res.json({
+          text: ':x: An unexpected error occurred. Please contact support.',
+          response_type: 'ephemeral',
+        });
+      }
+    }
     // Supported slash commands
     const supportedCommands = [
-      '/tasks', '/task', '/task-delete', '/task-edit', '/task-complete',
-      '/add-admin', '/removeadmin', '/listadmins', '/auditlog', '/report',
-      '/notifyprefs', '/setdigestchannel', '/delete-workspace-data', '/support', '/setconfig', '/help'
+      '/tasks',
+      '/task',
+      '/task-delete',
+      '/task-edit',
+      '/task-complete',
+      '/add-admin',
+      '/removeadmin',
+      '/listadmins',
+      '/auditlog',
+      '/report',
+      '/notifyprefs',
+      '/setdigestchannel',
+      '/delete-workspace-data',
+      '/support',
+      '/setconfig',
+      '/help',
     ];
     if (!supportedCommands.includes(payload.command)) {
       return res.json({ text: 'Unknown slash command.' });
     }
-    // TODO: Migrate and implement each command's logic here
-    if (payload.command === '/task-delete') {
+    // /task command: open task creation modal
+    if (payload.command === '/task') {
+      try {
+        const { logWorkspace, logUser } = require('./models/analyticsModel');
+        const { getTokenForTeam } = require('./models/workspaceTokensModel');
+        const { WebClient } = require('@slack/web-api');
+        const { getTaskModal } = require('./blockKit/taskModal');
+        const workspace_id = payload.team_id;
+        const channel_id = payload.channel_id;
+        const user_id = payload.user_id;
+        logWorkspace(workspace_id, 'Slack Workspace');
+        logUser(user_id, workspace_id, 'Slack User');
+        const botToken = await getTokenForTeam(workspace_id);
+        if (!botToken) {
+          return res.json({
+            text: ':x: App not properly installed for this workspace. Please reinstall.',
+            response_type: 'ephemeral',
+          });
+        }
+        const realClient = new WebClient(botToken);
+        await realClient.views.open({
+          trigger_id: payload.trigger_id,
+          view: getTaskModal(channel_id),
+        });
+        return res.status(200).send();
+      } catch (apiErr) {
+        console.error('[task] Slack API error (modal open):', apiErr);
+        if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+          return res.json({
+            text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+            response_type: 'ephemeral',
+          });
+        } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
+          return res.json({
+            text: ':x: User not found. Please check the user ID.',
+            response_type: 'ephemeral',
+          });
+        } else {
+          return res.json({
+            text: ':x: An unexpected error occurred. Please contact support.',
+            response_type: 'ephemeral',
+          });
+        }
+      }
+    } else if (payload.command === '/task-delete') {
       // ...existing code for /task-delete...
       try {
         const workspace_id = payload.team_id;
@@ -168,6 +1163,68 @@ async function slackHandler(req, res) {
         });
       }
     } else if (payload.command === '/tasks') {
+    } else if (payload.command === '/task-edit') {
+      // Migrate /task-edit: open edit modal for user's open tasks
+      try {
+        const { logWorkspace, logUser } = require('./models/analyticsModel');
+        const { getTokenForTeam } = require('./models/workspaceTokensModel');
+        const { WebClient } = require('@slack/web-api');
+        const { getEditTaskModal } = require('./blockKit/editTaskModal');
+        const { getOpenTasks } = require('./models/taskModel');
+        const workspace_id = payload.team_id;
+        const channel_id = payload.channel_id;
+        const user_id = payload.user_id;
+        logWorkspace(workspace_id, 'Slack Workspace');
+        logUser(user_id, workspace_id, 'Slack User');
+        const botToken = await getTokenForTeam(workspace_id);
+        if (!botToken) {
+          return res.json({
+            text: ':x: App not properly installed for this workspace. Please reinstall.',
+            response_type: 'ephemeral',
+          });
+        }
+        const realClient = new WebClient(botToken);
+        // Only show tasks assigned to this user or all open tasks? (original: all open tasks)
+        const db = await require('./db')();
+        const rows = await db
+          .collection('tasks')
+          .find({ status: 'open', workspace_id })
+          .toArray();
+        if (!rows.length) {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: 'No open tasks to edit.',
+          });
+          return res.status(200).send();
+        }
+        await realClient.views.open({
+          trigger_id: payload.trigger_id,
+          view: {
+            ...getEditTaskModal(rows),
+            private_metadata: JSON.stringify({ channel_id }),
+          },
+        });
+        return res.status(200).send();
+      } catch (apiErr) {
+        console.error('[task-edit] Slack API error (modal open):', apiErr);
+        if (apiErr.data && apiErr.data.error === 'channel_not_found') {
+          return res.json({
+            text: ':x: Channel not found or bot is not a member. Please invite the bot to this channel.',
+            response_type: 'ephemeral',
+          });
+        } else if (apiErr.data && apiErr.data.error === 'user_not_found') {
+          return res.json({
+            text: ':x: User not found. Please check the user ID.',
+            response_type: 'ephemeral',
+          });
+        } else {
+          return res.json({
+            text: ':x: An unexpected error occurred. Please contact support.',
+            response_type: 'ephemeral',
+          });
+        }
+      }
       // Migrated /tasks command logic
       try {
         const { logWorkspace, logUser } = require('./models/analyticsModel');
@@ -324,7 +1381,393 @@ async function slackHandler(req, res) {
     }
   }
   if (payload.type === 'view_submission') {
-    // Handle delete_task_modal_submit
+    // Handle setconfig_modal_submit
+    if (payload.view && payload.view.callback_id === 'setconfig_modal_submit') {
+      const { setSetting } = require('./models/settingsModel');
+      const { logActivity } = require('./models/activityLogModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team.id || payload.team_id;
+      const digestChannel =
+        payload.view.state.values.digest_channel_block.digest_channel_input
+          .value;
+      const digestTime =
+        payload.view.state.values.digest_time_block.digest_time_input.value;
+      const reminderTime =
+        payload.view.state.values.reminder_time_block.reminder_time_input.value;
+      await setSetting('digest_channel', digestChannel, workspace_id);
+      await setSetting('digest_time', digestTime, workspace_id);
+      await setSetting('reminder_time', reminderTime, workspace_id);
+      await logActivity(
+        payload.user.id,
+        'update_config',
+        `Digest Channel: ${digestChannel}, Digest Time: ${digestTime}, Reminder Time: ${reminderTime}`,
+      );
+      const botToken = await getTokenForTeam(workspace_id);
+      if (botToken) {
+        const realClient = new WebClient(botToken);
+        await realClient.chat.postMessage({
+          channel: payload.user.id,
+          text: `:white_check_mark: Workspace settings updated!\nDigest Channel: ${digestChannel}\nDigest Time: ${digestTime}\nReminder Time: ${reminderTime}`,
+        });
+      }
+      return res.json({ response_action: 'clear' });
+    }
+    // Handle delete_workspace_data_confirm
+    if (
+      payload.view &&
+      payload.view.callback_id === 'delete_workspace_data_confirm'
+    ) {
+      const {
+        isAdmin,
+        deleteAdminsForWorkspace,
+      } = require('./models/adminModel');
+      const { deleteTasksForWorkspace } = require('./models/taskModel');
+      const connectDB = require('./db');
+      // Helpers from original handler
+      async function deleteFeedbackForWorkspace(workspace_id) {
+        const db = await connectDB();
+        await db.collection('feedback').deleteMany({ workspace_id });
+      }
+      async function deleteBugReportsForWorkspace(workspace_id) {
+        const db = await connectDB();
+        await db.collection('bug_reports').deleteMany({ workspace_id });
+      }
+      async function removeAllSettingsForWorkspace(workspace_id) {
+        const db = await connectDB();
+        await db.collection('settings').deleteMany({ workspace_id });
+      }
+      async function removeWorkspaceToken(workspace_id) {
+        const db = await connectDB();
+        await db
+          .collection('workspace_tokens')
+          .deleteMany({ team_id: workspace_id });
+      }
+      async function removeNotificationPreferences(workspace_id) {
+        const db = await connectDB();
+        await db
+          .collection('notification_preferences')
+          .deleteMany({ workspace_id });
+      }
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const workspace_id = payload.team.id;
+      const user_id = payload.user.id;
+      const confirmation =
+        payload.view.state.values.confirm_block.confirm_input.value;
+      let channel_id = null;
+      try {
+        if (payload.view.private_metadata) {
+          const meta = JSON.parse(payload.view.private_metadata);
+          if (meta.channel_id) channel_id = meta.channel_id;
+        }
+      } catch (e) {
+        channel_id = payload.view.private_metadata || null;
+      }
+      if (confirmation !== 'DELETE') {
+        const botToken = await getTokenForTeam(workspace_id);
+        if (botToken && channel_id) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':warning: Data deletion cancelled. You must type DELETE to confirm.',
+          });
+        }
+        return res.json({ response_action: 'clear' });
+      }
+      try {
+        await deleteTasksForWorkspace(workspace_id);
+        await deleteFeedbackForWorkspace(workspace_id);
+        await deleteBugReportsForWorkspace(workspace_id);
+        await deleteAdminsForWorkspace(workspace_id);
+        await removeAllSettingsForWorkspace(workspace_id);
+        await removeWorkspaceToken(workspace_id);
+        await removeNotificationPreferences(workspace_id);
+        const botToken = await getTokenForTeam(workspace_id);
+        if (botToken && channel_id) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':wastebasket: All workspace data has been deleted.',
+          });
+        }
+      } catch (err) {
+        const botToken = await getTokenForTeam(workspace_id);
+        if (botToken && channel_id) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: ':warning: Failed to delete workspace data. Please contact support.',
+          });
+        }
+      }
+      return res.json({ response_action: 'clear' });
+    }
+    // Handle notifyprefs_modal_submit
+    if (
+      payload.view &&
+      payload.view.callback_id === 'notifyprefs_modal_submit'
+    ) {
+      const {
+        setPreferences,
+      } = require('./models/notificationPreferencesModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      const userId = payload.user.id;
+      let channel_id = null;
+      try {
+        if (payload.view.private_metadata) {
+          const meta = JSON.parse(payload.view.private_metadata);
+          if (meta.channel_id) channel_id = meta.channel_id;
+        }
+      } catch (e) {
+        channel_id = payload.view.private_metadata || null;
+      }
+      const muteAll =
+        payload.view.state.values.mute_block.mute_input.selected_options.some(
+          (opt) => opt.value === 'mute_all',
+        );
+      const digestOnly =
+        payload.view.state.values.digest_block.digest_input.selected_options.some(
+          (opt) => opt.value === 'digest_only',
+        );
+      const customReminderTime =
+        payload.view.state.values.reminder_time_block.reminder_time_input.value;
+      const workspace_id = payload.team.id;
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        console.error(
+          '[notifyprefs modal] No bot token found for workspace:',
+          workspace_id,
+        );
+        if (channel_id && channel_id.startsWith('C')) {
+          // Can't send message without token
+        }
+        return res.status(200).send();
+      }
+      const realClient = new WebClient(botToken);
+      await setPreferences(userId, { muteAll, digestOnly, customReminderTime });
+      if (channel_id && channel_id.startsWith('C')) {
+        try {
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: userId,
+            text: `:white_check_mark: Notification preferences updated!\nMute all: ${
+              muteAll ? 'Yes' : 'No'
+            }\nDigest only: ${
+              digestOnly ? 'Yes' : 'No'
+            }\nCustom reminder time: ${customReminderTime || 'Default'}`,
+          });
+        } catch (apiErr) {
+          console.error('[notifyprefs modal] Slack API error:', apiErr);
+        }
+      } else {
+        console.error(
+          '[ERROR] No valid channel_id for postEphemeral in /notifyprefs modal submission.',
+          channel_id,
+        );
+      }
+      return res.json({ response_action: 'clear' });
+    }
+    // Handle remove_admin_modal_submit
+    if (
+      payload.view &&
+      payload.view.callback_id === 'remove_admin_modal_submit'
+    ) {
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { removeAdmin } = require('./models/adminModel');
+      const { logActivity } = require('./models/activityLogModel');
+      const { WebClient } = require('@slack/web-api');
+      const user = payload.user.id;
+      const values = payload.view.state.values;
+      const adminId = values.admin_block.admin_select.selected_option.value;
+      const workspace_id = payload.team.id;
+      // Safely get channel ID for ephemeral message
+      let channelId = null;
+      if (payload.view && payload.view.private_metadata) {
+        channelId = payload.view.private_metadata;
+      } else if (payload.channel && payload.channel.id) {
+        channelId = payload.channel.id;
+      }
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        console.error(
+          '[removeadmin modal] No bot token found for workspace:',
+          workspace_id,
+        );
+        if (channelId) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channelId,
+            user,
+            text: ':x: App not properly installed for this workspace. Please reinstall.',
+          });
+        }
+        return res.status(200).send();
+      }
+      const realClient = new WebClient(botToken);
+      const result = await removeAdmin(adminId, workspace_id);
+      logActivity(
+        user,
+        'remove_admin',
+        `Admin privileges removed for <@${adminId}>`,
+      );
+      if (!channelId) {
+        console.error(
+          '[ERROR] Unable to send feedback for /remove-admin. No valid channel context.',
+        );
+        return res.status(200).send();
+      }
+      if (!result || result.deletedCount === 0) {
+        await realClient.chat.postEphemeral({
+          channel: channelId,
+          user,
+          text: '❗ Failed to remove admin. User not found or database error.',
+        });
+      } else {
+        await realClient.chat.postEphemeral({
+          channel: channelId,
+          user,
+          text: `:no_entry: Admin privileges removed for <@${adminId}>.`,
+        });
+      }
+      return res.json({ response_action: 'clear' });
+    }
+    // Handle add_admin_modal_submit
+    if (payload.view && payload.view.callback_id === 'add_admin_modal_submit') {
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { addAdmin, isAdmin } = require('./models/adminModel');
+      const { logActivity } = require('./models/activityLogModel');
+      const { WebClient } = require('@slack/web-api');
+      const user = payload.user.id;
+      const selectedUser =
+        payload.view.state.values.user_block.user_select.selected_user;
+      const workspaceId = payload.team.id || payload.team_id;
+      // Get channel_id from private_metadata
+      let channel_id = null;
+      try {
+        if (payload.view.private_metadata) {
+          const meta = JSON.parse(payload.view.private_metadata);
+          if (meta.channel_id) channel_id = meta.channel_id;
+        }
+      } catch (e) {}
+      const botToken = await getTokenForTeam(workspaceId);
+      if (!botToken) {
+        console.error('No bot token found for workspace:', workspaceId);
+        return res.status(200).send();
+      }
+      const realClient = new WebClient(botToken);
+      // Prevent duplicate admin entries
+      const alreadyAdmin = await isAdmin(selectedUser, workspaceId);
+      if (alreadyAdmin) {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user,
+          text: `:information_source: <@${selectedUser}> is already an admin for this workspace.`,
+        });
+        return res.json({ response_action: 'clear' });
+      }
+      await addAdmin(selectedUser, workspaceId);
+      logActivity(
+        user,
+        'add_admin',
+        `Admin privileges granted to <@${selectedUser}>`,
+      );
+      await realClient.chat.postEphemeral({
+        channel: channel_id,
+        user,
+        text: `:white_check_mark: Admin privileges granted to <@${selectedUser}>.`,
+      });
+      return res.json({ response_action: 'clear' });
+    }
+    // Handle complete_task_modal_submit
+    if (
+      payload.view &&
+      payload.view.callback_id === 'complete_task_modal_submit'
+    ) {
+      const workspace_id = payload.team.id;
+      const user_id = payload.user.id;
+      let channel_id = null;
+      try {
+        if (payload.view.private_metadata) {
+          const meta = JSON.parse(payload.view.private_metadata);
+          if (meta.channel_id) channel_id = meta.channel_id;
+        }
+      } catch (e) {
+        channel_id = payload.view.private_metadata || null;
+      }
+      if (!channel_id || !channel_id.startsWith('C')) {
+        console.error(
+          '[ERROR] Invalid channel_id for postEphemeral in /task-complete modal submission:',
+          channel_id,
+        );
+        return res.status(200).send();
+      }
+      // Extract values
+      const values = payload.view.state.values;
+      let selectedTaskIds = [];
+      if (values.task_block.task_select.selected_options) {
+        selectedTaskIds = values.task_block.task_select.selected_options.map(
+          (opt) => opt.value,
+        );
+      } else if (values.task_block.task_select.selected_option) {
+        selectedTaskIds = [values.task_block.task_select.selected_option.value];
+      }
+      const notes = values.notes_block?.notes_input?.value || '';
+      const { completeTask } = require('./models/taskModel');
+      const { logActivity, logUser } = require('./models/activityLogModel');
+      const { getTokenForTeam } = require('./models/workspaceTokensModel');
+      const { WebClient } = require('@slack/web-api');
+      let completed = [];
+      let failed = [];
+      const botToken = await getTokenForTeam(workspace_id);
+      if (!botToken) {
+        console.error(
+          '[task-complete modal] No bot token found for workspace:',
+          workspace_id,
+        );
+        return res.status(200).send();
+      }
+      const realClient = new WebClient(botToken);
+      for (const taskId of selectedTaskIds) {
+        try {
+          const result = await completeTask(workspace_id, taskId);
+          logUser(user_id, workspace_id, payload.user.username || 'Slack User');
+          logActivity(
+            user_id,
+            'complete_task',
+            `Task ${taskId} marked complete. Notes: ${notes || 'N/A'}`,
+          );
+          if (!result || result.modifiedCount === 0) {
+            failed.push(taskId);
+          } else {
+            completed.push(taskId);
+          }
+        } catch (err) {
+          failed.push(taskId);
+        }
+      }
+      let msg = '';
+      if (completed.length)
+        msg += `:white_check_mark: Completed: ${completed.join(', ')}.`;
+      if (failed.length) msg += `\n:warning: Failed: ${failed.join(', ')}.`;
+      if (notes) msg += `\nNotes: ${notes}`;
+      try {
+        await realClient.chat.postEphemeral({
+          channel: channel_id,
+          user: user_id,
+          text: msg,
+        });
+      } catch (apiErr) {
+        console.error('[task-complete modal] Slack API error:', apiErr);
+      }
+      // Respond to Slack to close modal
+      return res.json({ response_action: 'clear' });
+    }
+    // Handle view submissions (delete and edit)
     try {
       if (
         payload.view &&
@@ -352,13 +1795,84 @@ async function slackHandler(req, res) {
         }
         // Send confirmation (ephemeral message if channel known)
         if (channel_id) {
-          await webClient.chat.postEphemeral({
-            channel: channel_id,
-            user: user_id,
-            text: `:wastebasket: Task deleted.${
-              reason ? ' Reason: ' + reason : ''
-            }`,
-          });
+          const { WebClient } = require('@slack/web-api');
+          const { getTokenForTeam } = require('./models/workspaceTokensModel');
+          const botToken = await getTokenForTeam(workspace_id);
+          if (botToken) {
+            const webClient = new WebClient(botToken);
+            await webClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: `:wastebasket: Task deleted.${
+                reason ? ' Reason: ' + reason : ''
+              }`,
+            });
+          }
+        }
+        // Respond to Slack to close modal
+        return res.json({ response_action: 'clear' });
+      } else if (
+        payload.view &&
+        payload.view.callback_id === 'edit_task_modal_submit'
+      ) {
+        // Handle edit task modal submission
+        const workspace_id = payload.team.id;
+        const user_id = payload.user.id;
+        let channel_id = null;
+        try {
+          if (payload.view.private_metadata) {
+            const meta = JSON.parse(payload.view.private_metadata);
+            if (meta.channel_id) channel_id = meta.channel_id;
+          }
+        } catch (e) {
+          channel_id = payload.view.private_metadata || null;
+        }
+        // Extract values
+        const values = payload.view.state.values;
+        const taskId = values.task_block.task_select.selected_option.value;
+        const newDesc = values.desc_block.desc_input.value;
+        const newDue = values.due_block.due_input.value;
+        const newCategory = values.category_block?.category_input?.value || '';
+        const newTags = values.tags_block?.tags_input?.value || '';
+        const newPriority =
+          values.priority_block?.priority_select?.selected_option?.value || '';
+        // Update task in DB
+        const { updateTask } = require('./models/taskModel');
+        await updateTask(
+          workspace_id,
+          taskId,
+          newDesc,
+          undefined, // assignedUser (not editable in modal)
+          newDue,
+          newCategory,
+          newTags,
+          newPriority,
+        );
+        // Log activity
+        try {
+          const { logActivity, logUser } = require('./models/activityLogModel');
+          logUser(user_id, workspace_id, payload.user.username || 'Slack User');
+          logActivity(
+            user_id,
+            'edit_task',
+            `Task ${taskId} edited. New description: ${newDesc}, New due: ${newDue}`,
+          );
+        } catch (e) {
+          /* ignore analytics errors */
+        }
+        // Send confirmation (ephemeral message if channel known)
+        if (channel_id && channel_id.startsWith('C')) {
+          const { WebClient } = require('@slack/web-api');
+          const { getTokenForTeam } = require('./models/workspaceTokensModel');
+          const botToken = await getTokenForTeam(workspace_id);
+          if (botToken) {
+            const webClient = new WebClient(botToken);
+            await webClient.chat.postEphemeral({
+              channel: channel_id,
+              user: user_id,
+              text: `:pencil2: Task updated successfully.`,
+            });
+          }
         }
         // Respond to Slack to close modal
         return res.json({ response_action: 'clear' });
@@ -371,7 +1885,7 @@ async function slackHandler(req, res) {
       return res.json({
         response_action: 'errors',
         errors: {
-          task_block: 'Failed to delete task. Please try again.',
+          task_block: 'Failed to process modal. Please try again.',
         },
       });
     }
