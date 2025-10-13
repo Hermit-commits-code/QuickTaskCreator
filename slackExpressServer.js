@@ -151,7 +151,7 @@ async function slackHandler(req, res) {
       });
     }
   } else if (payload.command === '/tasks') {
-    // List open tasks in the channel
+    // List open tasks in the channel with action buttons
     try {
       const { logWorkspace, logUser } = require('./models/analyticsModel');
       const { getTokenForTeam } = require('./models/workspaceTokensModel');
@@ -194,7 +194,36 @@ async function slackHandler(req, res) {
             type: 'mrkdwn',
             text: `*${t.description}*${assigned}${due}${category}${tags}${priority}`,
           },
+          accessory: {
+            type: 'button',
+            text: { type: 'plain_text', text: 'Complete' },
+            action_id: `complete_task_${t._id}`,
+            value: String(t._id),
+          },
         };
+      });
+      blocks.push({
+        type: 'actions',
+        elements: [
+          {
+            type: 'button',
+            text: { type: 'plain_text', text: 'Edit' },
+            action_id: 'edit_task',
+            value: 'edit',
+          },
+          {
+            type: 'button',
+            text: { type: 'plain_text', text: 'Delete' },
+            action_id: 'delete_task',
+            value: 'delete',
+          },
+          {
+            type: 'button',
+            text: { type: 'plain_text', text: 'Batch Actions' },
+            action_id: 'batch_task_actions',
+            value: 'batch',
+          },
+        ],
       });
       await realClient.chat.postEphemeral({
         channel: channel_id,
@@ -660,6 +689,7 @@ async function slackHandler(req, res) {
             : {}),
         },
         label: { type: 'plain_text', text: 'Mute' },
+        optional: true,
       };
       const digestBlock = {
         type: 'input',
@@ -673,6 +703,7 @@ async function slackHandler(req, res) {
             : {}),
         },
         label: { type: 'plain_text', text: 'Digest Only' },
+        optional: true,
       };
       await realClient.views.open({
         trigger_id: payload.trigger_id,
