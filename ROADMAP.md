@@ -45,9 +45,6 @@ Slash commands will continue to work—just handle them as POST routes in Expres
 
 ## 🚧 In Progress & Upcoming Features
 
-### Free Tier (Core)
-
-- Accessibility enhancements
 
 ### Premium Tier (Advanced/Business)
 
