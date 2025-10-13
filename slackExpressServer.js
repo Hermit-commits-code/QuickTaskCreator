@@ -1514,6 +1514,135 @@ async function slackHandler(req, res) {
     }
   }
   if (payload.type === 'view_submission') {
+    // Handle task_modal_submit (create task from modal)
+    if (payload.view && payload.view.callback_id === 'task_modal_submit') {
+      try {
+        const { createTask } = require('./models/taskModel');
+        const { getTokenForTeam } = require('./models/workspaceTokensModel');
+        const { WebClient } = require('@slack/web-api');
+        const values = payload.view.state.values;
+        const workspace_id = payload.team.id || payload.team_id;
+        const user_id = payload.user.id;
+        let channel_id = null;
+        try {
+          if (payload.view.private_metadata) {
+            channel_id = payload.view.private_metadata;
+          }
+        } catch (e) {}
+        // Extract modal values
+        const description = values.description_block.description_input.value;
+        const assignedUser = values.user_block.user_select.selected_user;
+        const dueDate = values.due_block.due_input.value;
+        const category = values.category_block?.category_input?.value || '';
+        const tags = values.tags_block?.tags_input?.value || '';
+        const priority =
+          values.priority_block?.priority_select?.selected_option?.value || '';
+        const recurrenceType =
+          values.recurrence_type_block?.recurrence_type_select?.selected_option
+            ?.value || 'none';
+        const recurrenceInterval =
+          values.recurrence_interval_block?.recurrence_interval_input?.value ||
+          '1';
+        // Create the task in DB
+        const taskId = await createTask(
+          workspace_id,
+          description,
+          assignedUser,
+          dueDate,
+          category,
+          tags,
+          priority,
+        );
+        // Send confirmation (ephemeral message if channel known)
+        const botToken = await getTokenForTeam(workspace_id);
+        if (botToken && channel_id && channel_id.startsWith('C')) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: `:white_check_mark: Task created successfully!`,
+          });
+        }
+        return res.json({ response_action: 'clear' });
+      } catch (err) {
+        console.error('task_modal_submit error:', err);
+        return res.json({
+          response_action: 'errors',
+          errors: {
+            description_block: 'Failed to create task. Please try again.',
+          },
+        });
+      }
+    }
+    // Handle task_modal_submit (create task from modal)
+    if (payload.view && payload.view.callback_id === 'task_modal_submit') {
+      try {
+        const { createTask } = require('./models/taskModel');
+        const { logActivity, logUser } = require('./models/activityLogModel');
+        const { getTokenForTeam } = require('./models/workspaceTokensModel');
+        const { WebClient } = require('@slack/web-api');
+        const workspace_id = payload.team.id || payload.team_id;
+        const user_id = payload.user.id;
+        let channel_id = null;
+        try {
+          if (payload.view.private_metadata) {
+            channel_id = payload.view.private_metadata;
+          }
+        } catch (e) {}
+        const values = payload.view.state.values;
+        const description = values.description_block.description_input.value;
+        const assignedUser = values.user_block.user_select.selected_user;
+        const dueDate = values.due_block.due_input.value;
+        const category = values.category_block?.category_input?.value || '';
+        const tags = values.tags_block?.tags_input?.value || '';
+        const priority =
+          values.priority_block?.priority_select?.selected_option?.value || '';
+        const recurrenceType =
+          values.recurrence_type_block?.recurrence_type_select?.selected_option
+            ?.value || 'none';
+        const recurrenceInterval =
+          values.recurrence_interval_block?.recurrence_interval_input?.value ||
+          '1';
+        // Create the task in DB
+        const taskId = await createTask(
+          workspace_id,
+          description,
+          assignedUser,
+          dueDate,
+          category,
+          tags,
+          priority,
+        );
+        // Log activity
+        try {
+          logUser(user_id, workspace_id, payload.user.username || 'Slack User');
+          logActivity(
+            user_id,
+            'create_task',
+            `Task ${taskId} created. Description: ${description}`,
+          );
+        } catch (e) {}
+        // Send confirmation (ephemeral message if channel known)
+        const botToken = await getTokenForTeam(workspace_id);
+        if (botToken && channel_id && channel_id.startsWith('C')) {
+          const realClient = new WebClient(botToken);
+          await realClient.chat.postEphemeral({
+            channel: channel_id,
+            user: user_id,
+            text: `:white_check_mark: Task created successfully!`,
+          });
+        }
+        return res.json({ response_action: 'clear' });
+      } catch (err) {
+        console.error('task_modal_submit error:', err);
+        return res.json({
+          response_action: 'errors',
+          errors: {
+            description_block: 'Failed to create task. Please try again.',
+          },
+        });
+      }
+    }
     // Handle setconfig_modal_submit
     if (payload.view && payload.view.callback_id === 'setconfig_modal_submit') {
       const { setSetting } = require('./models/settingsModel');
