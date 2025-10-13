@@ -2,7 +2,7 @@ const axios = require('axios');
 const express = require('express');
 const bodyParser = require('body-parser');
 const { WebClient } = require('@slack/web-api');
-const verifySlackSignature = require('./utils/verifySlackSignature');
+const verifySlackSignature = require('./utils/utils/verifySlackSignature');
 require('dotenv').config();
 const app = express();
 // Health check route for deployment debugging
