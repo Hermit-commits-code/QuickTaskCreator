@@ -121,7 +121,10 @@ async function slackHandler(req, res) {
   if (payload.command === '/task') {
     // Open task creation modal
     try {
-      const { logWorkspace, logUser } = require('./models/analyticsModel');
+      const {
+        logWorkspace,
+        logUser,
+      } = require('./models/models/analyticsModel');
       const { getTokenForTeam } = require('./models/workspaceTokensModel');
       const { WebClient } = require('@slack/web-api');
       const { getTaskModal } = require('./blockKit/taskModal');

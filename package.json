@@ -4,7 +4,7 @@
   "description": "A lightweight Slack app for fast, frictionless task creation and management. Now with auto-admin for solo users and professional error handling.",
   "main": "index.js",
   "scripts": {
-  "start": "node src/slackExpressServer.js",
+    "start": "node src/slackExpressServer.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
