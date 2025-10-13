@@ -1,5 +1,5 @@
-const { logWorkspace, logUser } = require('../models/analyticsModel');
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const { logWorkspace, logUser } = require('../../models/models/analyticsModel');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
 module.exports = function (app) {
   // Register modularized handlers
@@ -9,7 +9,7 @@ module.exports = function (app) {
   registerSingleTaskHandlers(app);
   const {
     registerBatchActions,
-  } = require('../utils/tasks/batchActionsHandlers');
+  } = require('../../utils/utils/tasks/batchActionsHandlers');
   registerBatchActions(app);
 
   // /tasks command and modal

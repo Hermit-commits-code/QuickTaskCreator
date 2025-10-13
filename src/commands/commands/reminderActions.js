@@ -1,8 +1,8 @@
 // Reminder button action handlers
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
 const { ObjectId } = require('mongodb');
-const connectDB = require('../db');
+const connectDB = require('../../db');
 module.exports = function (app) {
   // Snooze 1 hour
   app.action('reminder_snooze_1h', async ({ ack, body, client, logger }) => {

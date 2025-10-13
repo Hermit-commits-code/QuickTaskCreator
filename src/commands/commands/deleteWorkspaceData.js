@@ -1,8 +1,11 @@
-const { isAdmin, deleteAdminsForWorkspace } = require('../models/adminModel');
-const { deleteTasksForWorkspace } = require('../models/taskModel');
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const {
+  isAdmin,
+  deleteAdminsForWorkspace,
+} = require('../../models/models/adminModel');
+const { deleteTasksForWorkspace } = require('../../models/models/taskModel');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
-const connectDB = require('../db');
+const connectDB = require('../../db');
 
 // Helper to remove all feedback for a workspace
 async function deleteFeedbackForWorkspace(workspace_id) {

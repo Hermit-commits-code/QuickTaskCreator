@@ -1,7 +1,7 @@
 // /setdigestchannel command handler
-const { setSetting } = require('../models/settingsModel');
+const { setSetting } = require('../../models/models/settingsModel');
 
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
 module.exports = function (app) {
   app.command(

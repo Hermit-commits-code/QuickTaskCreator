@@ -1515,6 +1515,7 @@ async function slackHandler(req, res) {
       const realClient = new WebClient(botToken);
 
       // --- Complete Task ---
+
       if (action.action_id && action.action_id.startsWith('complete_task_')) {
         const taskId = action.action_id.replace('complete_task_', '');
         const { completeTask } = require('./models/taskModel');
@@ -1530,7 +1531,9 @@ async function slackHandler(req, res) {
       // --- Edit Task ---
       if (action.action_id === 'edit_task') {
         // Open edit modal for user's open tasks
-        const { getEditTaskModal } = require('./blockKit/editTaskModal');
+        const {
+          getEditTaskModal,
+        } = require('./blockKit/blockKit/editTaskModal');
         const db = await require('./db')();
         const rows = await db
           .collection('tasks')
@@ -1557,7 +1560,9 @@ async function slackHandler(req, res) {
       // --- Delete Task ---
       if (action.action_id === 'delete_task') {
         // Open delete modal for user's open tasks
-        const { getDeleteTaskModal } = require('./blockKit/deleteTaskModal');
+        const {
+          getDeleteTaskModal,
+        } = require('./blockKit/blockKit/deleteTaskModal');
         const db = await require('./db')();
         const rows = await db
           .collection('tasks')
@@ -1581,7 +1586,9 @@ async function slackHandler(req, res) {
       // --- Batch Actions ---
       if (action.action_id === 'batch_task_actions') {
         // Open batch actions modal for user's open tasks
-        const { getBatchTaskModal } = require('./blockKit/batchTaskModal');
+        const {
+          getBatchTaskModal,
+        } = require('./blockKit/blockKit/batchTaskModal');
         const db = await require('./db')();
         const rows = await db
           .collection('tasks')

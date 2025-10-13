@@ -1,8 +1,10 @@
-const { getCompleteTaskModal } = require('../blockKit/completeTaskModal');
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const {
+  getCompleteTaskModal,
+} = require('../../blockKit/blockKit/completeTaskModal');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
-const { logWorkspace, logUser } = require('../models/analyticsModel');
-const taskModel = require('../models/taskModel');
+const { logWorkspace, logUser } = require('../../models/models/analyticsModel');
+const taskModel = require('../../models/models/taskModel');
 module.exports = function (app) {
   app.command('/task-complete', async ({ ack, client, body, logger }) => {
     await ack();
@@ -107,7 +109,7 @@ module.exports = function (app) {
           )
         : [view.state.values.task_block.task_select.selected_option.value];
       const notes = view.state.values.notes_block.notes_input.value;
-      const { logActivity } = require('../models/activityLogModel');
+      const { logActivity } = require('../../models/models/activityLogModel');
       let completed = [];
       let failed = [];
       let channel_id = null;

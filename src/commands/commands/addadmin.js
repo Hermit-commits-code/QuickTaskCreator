@@ -1,8 +1,8 @@
 // /addadmin command handler (modal-based)
-const { getAddAdminModal } = require('../blockKit/addAdminModal');
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
-const { addAdmin, isAdmin } = require('../models/adminModel');
-const { logActivity } = require('../models/activityLogModel');
+const { getAddAdminModal } = require('../../blockKit/blockKit/addAdminModal');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
+const { addAdmin, isAdmin } = require('../../models/models/adminModel');
+const { logActivity } = require('../../models/models/activityLogModel');
 const { WebClient } = require('@slack/web-api');
 
 module.exports = function (app) {

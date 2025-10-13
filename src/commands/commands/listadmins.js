@@ -1,6 +1,8 @@
 // /listadmins command handler (modal-based)
-const { getListAdminsModal } = require('../blockKit/listAdminsModal');
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const {
+  getListAdminsModal,
+} = require('../../blockKit/blockKit/listAdminsModal');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
 
 module.exports = function (app) {
@@ -44,7 +46,7 @@ module.exports = function (app) {
     }
     const realClient = new WebClient(botToken);
     try {
-      const db = await require('../db')();
+      const db = await require('../../db')();
       const admins = await db
         .collection('admins')
         .find({ workspace_id })

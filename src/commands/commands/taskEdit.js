@@ -1,9 +1,9 @@
 // /task-edit command handler
 
-const { getEditTaskModal } = require('../blockKit/editTaskModal');
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const { getEditTaskModal } = require('../../blockKit/blockKit/editTaskModal');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
-const { logWorkspace, logUser } = require('../models/analyticsModel');
+const { logWorkspace, logUser } = require('../../models/models/analyticsModel');
 module.exports = function (app) {
   // /task-edit command now opens modal
   app.command('/task-edit', async ({ ack, body, client, logger }) => {

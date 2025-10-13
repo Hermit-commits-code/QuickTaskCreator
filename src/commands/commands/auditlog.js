@@ -1,8 +1,8 @@
 // commands/auditlog.js
-const { getRecentActivity } = require('../models/activityLogModel');
-const { isAdmin } = require('../models/adminModel');
-const { logWorkspace, logUser } = require('../models/analyticsModel');
-const { getTokenForTeam } = require('../models/workspaceTokensModel');
+const { getRecentActivity } = require('../../models/models/activityLogModel');
+const { isAdmin } = require('../../models/models/adminModel');
+const { logWorkspace, logUser } = require('../../models/models/analyticsModel');
+const { getTokenForTeam } = require('../../models/models/workspaceTokensModel');
 const { WebClient } = require('@slack/web-api');
 module.exports = function (app) {
   app.command(
