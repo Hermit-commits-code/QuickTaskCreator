@@ -156,7 +156,10 @@ async function slackHandler(req, res) {
   } else if (payload.command === '/tasks') {
     // List open tasks in the channel with action buttons
     try {
-      const { logWorkspace, logUser } = require('./models/analyticsModel');
+      const {
+        logWorkspace,
+        logUser,
+      } = require('./models/models/analyticsModel');
       const { getTokenForTeam } = require('./models/workspaceTokensModel');
       const { WebClient } = require('@slack/web-api');
       const workspace_id = payload.team_id;
